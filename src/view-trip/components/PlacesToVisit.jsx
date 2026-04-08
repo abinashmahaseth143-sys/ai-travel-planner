@@ -37,6 +37,12 @@ function PlacesToVisit({ trip }) {
     { id: "entertainment", name: "Entertainment", icon: "🎡", query: "entertainment centers amusement parks in" }
   ];
 
+  // Handle place click - opens Google Maps
+  const handlePlaceClick = (place) => {
+    const searchQuery = encodeURIComponent(`${place.placeName}, ${place.address || ''}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${searchQuery}`, '_blank');
+  };
+
   useEffect(() => {
     const fetchAllAttractions = async () => {
       const destination = getDestination();
@@ -257,7 +263,11 @@ function PlacesToVisit({ trip }) {
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {day.places.map((place, placeIndex) => (
-                <PlaceCardItem key={placeIndex} place={place} />
+                <PlaceCardItem 
+                  key={placeIndex} 
+                  place={place} 
+                  onClick={handlePlaceClick}
+                />
               ))}
             </div>
           </div>

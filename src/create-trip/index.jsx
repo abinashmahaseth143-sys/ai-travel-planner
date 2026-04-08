@@ -9,6 +9,8 @@ import { db } from '../service/firebaseConfig'
 import { doc, setDoc } from 'firebase/firestore'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { useNavigate } from 'react-router-dom'
+import VoiceButton from '../components/VoiceButton'
+import WeatherCountryAdvisor from '../components/WeatherCountryAdvisor'
 
 const libraries = ['places'];
 
@@ -40,6 +42,82 @@ function CreateTrip() {
         });
         console.log("Selected place:", selectedPlace);
       }
+    }
+  };
+
+  // Voice Handlers for ALL sections
+  const handleVoiceDestination = (voiceText) => {
+    console.log("Voice destination:", voiceText);
+    setPlace({
+      label: voiceText,
+      value: { formatted_address: voiceText }
+    });
+    const inputElement = document.querySelector('input[placeholder*="Search"]');
+    if (inputElement) {
+      inputElement.value = voiceText;
+    }
+    toast.success(`Destination set to ${voiceText}`);
+  };
+
+  const handleVoiceDays = (voiceText) => {
+    console.log("Voice days:", voiceText);
+    const numberMatch = voiceText.match(/\d+/);
+    if (numberMatch) {
+      setDays(numberMatch[0]);
+      toast.success(`Days set to ${numberMatch[0]}`);
+    } else {
+      toast("Please say a number like '3 days' or '5 days'");
+    }
+  };
+
+  const handleVoiceBudget = (voiceText) => {
+    console.log("Voice budget:", voiceText);
+    const lowerText = voiceText.toLowerCase();
+    if (lowerText.includes('cheap') || lowerText.includes('budget')) {
+      setSelectedBudget(1);
+      toast.success("Budget set to Cheap");
+    } else if (lowerText.includes('moderate') || lowerText.includes('medium')) {
+      setSelectedBudget(2);
+      toast.success("Budget set to Moderate");
+    } else if (lowerText.includes('luxury') || lowerText.includes('expensive')) {
+      setSelectedBudget(3);
+      toast.success("Budget set to Luxury");
+    } else {
+      toast("Please say 'cheap', 'moderate', or 'luxury'");
+    }
+  };
+
+  const handleVoiceTraveler = (voiceText) => {
+    console.log("Voice traveler:", voiceText);
+    const lowerText = voiceText.toLowerCase();
+    if (lowerText.includes('just me') || lowerText.includes('alone') || lowerText.includes('solo')) {
+      setSelectedTraveler(1);
+      toast.success("Traveler set to Just Me");
+    } else if (lowerText.includes('couple') || lowerText.includes('two people') || lowerText.includes('2 people')) {
+      setSelectedTraveler(2);
+      toast.success("Traveler set to Couple");
+    } else if (lowerText.includes('family')) {
+      setSelectedTraveler(3);
+      toast.success("Traveler set to Family");
+    } else if (lowerText.includes('friends') || lowerText.includes('group')) {
+      setSelectedTraveler(4);
+      toast.success("Traveler set to Friends");
+    } else {
+      toast("Please say 'just me', 'couple', 'family', or 'friends'");
+    }
+  };
+
+  const handleCountrySelect = (countryName) => {
+    console.log("Selected country from weather advisor:", countryName);
+    setPlace({
+      label: countryName,
+      value: { formatted_address: countryName }
+    });
+    toast.success(`Selected ${countryName}! Now set your trip details.`);
+    
+    const inputElement = document.querySelector('input[placeholder*="Search"]');
+    if (inputElement) {
+      inputElement.value = countryName;
     }
   };
 
@@ -143,60 +221,56 @@ function CreateTrip() {
         </p>
       </div>
       
-      {/* Destination Section */}
+      {/* Weather Country Advisor */}
+      <WeatherCountryAdvisor 
+        destination={place?.label} 
+        onSelectDestination={handleCountrySelect}
+      />
+      
+      {/* 1. DESTINATION Section with Voice */}
       <div style={{textAlign: 'center', marginTop: '40px'}}>
         <h2 style={{fontSize: '20px', margin: '12px 0', fontWeight: 'bold'}}>What is destination of choice?</h2>
-        <div style={{maxWidth: '500px', margin: '0 auto'}}>
-          <Autocomplete
-            onLoad={onLoad}
-            onPlaceChanged={onPlaceChanged}
-          >
-            <input
-              type="text"
-              placeholder="Search for any city, country, or place..."
-              style={{
-                width: '100%',
-                padding: '12px',
-                fontSize: '16px',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                outline: 'none'
-              }}
-            />
-          </Autocomplete>
+        <div style={{maxWidth: '500px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '8px'}}>
+          <div style={{flex: 1, position: 'relative'}}>
+            <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
+              <input
+                type="text"
+                placeholder="Search or speak to find any city, country, or place..."
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  outline: 'none'
+                }}
+              />
+            </Autocomplete>
+          </div>
+          <VoiceButton onResult={handleVoiceDestination} label="destination" />
         </div>
       </div>
 
-      {/* Number of Days Section */}
+      {/* 2. NUMBER OF DAYS Section */}
       <div style={{textAlign: 'center', marginTop: '40px'}}>
         <h2 style={{fontSize: '20px', margin: '12px 0', fontWeight: 'bold'}}>How many days are you planning your trip?</h2>
-        <div style={{maxWidth: '500px', margin: '0 auto'}}>
+        <div style={{maxWidth: '500px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '8px'}}>
           <Input 
             type="number"
             placeholder="Ex: 3"
             value={days}
             onChange={(e) => setDays(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px',
-              fontSize: '16px',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px'
-            }}
+            style={{ flex: 1, padding: '12px', fontSize: '16px', border: '1px solid #d1d5db', borderRadius: '8px' }}
           />
+          <VoiceButton onResult={handleVoiceDays} label="days" />
         </div>
       </div>
 
-      {/* Budget Section */}
+      {/* 3. BUDGET Section */}
       <div style={{textAlign: 'center', marginTop: '40px'}}>
         <h2 style={{fontSize: '20px', margin: '12px 0', fontWeight: 'bold'}}>What is Your Budget?</h2>
         <div style={{maxWidth: '900px', margin: '0 auto', padding: '0 20px'}}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '20px',
-            marginTop: '20px'
-          }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
             {SelectBudgetOptions.map((item, index) => (
               <div 
                 key={index} 
@@ -204,32 +278,33 @@ function CreateTrip() {
                 style={{
                   cursor: 'pointer',
                   padding: '20px',
+                  flex: 1,
+                  minWidth: '150px',
                   border: selectedBudget === item.id ? '2px solid #3b82f6' : '1px solid #e5e7eb',
                   borderRadius: '12px',
                   backgroundColor: selectedBudget === item.id ? '#eff6ff' : 'white',
-                  transition: 'all 0.2s',
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  transition: 'all 0.2s'
                 }}
               >
                 <div style={{fontSize: '40px', marginBottom: '8px'}}>{item.icon}</div>
-                <h3 style={{fontWeight: 'bold', fontSize: '18px', marginBottom: '4px'}}>{item.title}</h3>
+                <h3 style={{fontWeight: 'bold', fontSize: '18px'}}>{item.title}</h3>
                 <p style={{fontSize: '14px', color: '#6b7280'}}>{item.desc}</p>
               </div>
             ))}
           </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <VoiceButton onResult={handleVoiceBudget} label="budget" />
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>🎤 Say: "cheap", "moderate", or "luxury"</span>
+          </div>
         </div>
       </div>
 
-      {/* Traveler Section */}
+      {/* 4. TRAVELER Section */}
       <div style={{textAlign: 'center', marginTop: '40px'}}>
         <h2 style={{fontSize: '20px', margin: '12px 0', fontWeight: 'bold'}}>Who do you plan on traveling with on your next adventure?</h2>
         <div style={{maxWidth: '900px', margin: '0 auto', padding: '0 20px'}}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '20px',
-            marginTop: '20px'
-          }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
             {SelectTravelesList.map((item, index) => (
               <div 
                 key={index} 
@@ -237,19 +312,25 @@ function CreateTrip() {
                 style={{
                   cursor: 'pointer',
                   padding: '20px',
+                  flex: 1,
+                  minWidth: '120px',
                   border: selectedTraveler === item.id ? '2px solid #3b82f6' : '1px solid #e5e7eb',
                   borderRadius: '12px',
                   backgroundColor: selectedTraveler === item.id ? '#eff6ff' : 'white',
-                  transition: 'all 0.2s',
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  transition: 'all 0.2s'
                 }}
               >
                 <div style={{fontSize: '40px', marginBottom: '8px'}}>{item.icon}</div>
-                <h3 style={{fontWeight: 'bold', fontSize: '18px', marginBottom: '4px'}}>{item.title}</h3>
+                <h3 style={{fontWeight: 'bold', fontSize: '18px'}}>{item.title}</h3>
                 <p style={{fontSize: '14px', color: '#6b7280'}}>{item.desc}</p>
                 <p style={{fontSize: '12px', color: '#9ca3af', marginTop: '8px'}}>{item.people}</p>
               </div>
             ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <VoiceButton onResult={handleVoiceTraveler} label="traveler type" />
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>🎤 Say: "just me", "couple", "family", or "friends"</span>
           </div>
         </div>
       </div>

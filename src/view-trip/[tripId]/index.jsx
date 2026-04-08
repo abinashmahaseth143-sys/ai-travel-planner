@@ -7,6 +7,8 @@ import InfoSection from '../components/InfoSection';
 import Hotels from '../components/Hotels'; 
 import PlacesToVisit from '../components/PlacesToVisit';
 import Footer from '../components/Footer';
+import WeatherWidget from '../components/WeatherWidget'; // Step 5: Add WeatherWidget import
+
 
 function Viewtrip() {
   const { tripId } = useParams();
@@ -62,12 +64,16 @@ function Viewtrip() {
     );
   }
 
+  
   return (
     <div className='p-10 md:px-20 lg:px-44 xl:px-56'>
       {/* Information Section */}
       <InfoSection trip={trip} />
       
-      {/* Recommended Hotels - FIXED: Pass trip prop */}
+      {/* Step 5: Weather Widget - Add after InfoSection */}
+      <WeatherWidget destination={trip?.userSelection?.location} />
+      
+      {/* Recommended Hotels */}
       <Hotels trip={trip} />
       
       {/* Daily Plans */}

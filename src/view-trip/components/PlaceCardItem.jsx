@@ -1,6 +1,6 @@
 import React from 'react'
 
-function PlaceCardItem({ place }) {
+function PlaceCardItem({ place, onClick }) {
   if (!place) return null;
 
   const placeName = place.placeName || place.name || "Attraction";
@@ -28,25 +28,33 @@ function PlaceCardItem({ place }) {
 
   const travelTimeDisplay = getTravelTimeDisplay(travelTime);
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick(place);
+    }
+  };
+
   return (
-    <div style={{ 
-      display: 'flex', 
-      gap: '16px',
-      padding: '12px',
-      backgroundColor: '#f9fafb',
-      borderRadius: '12px',
-      transition: 'transform 0.2s, boxShadow 0.2s',
-      cursor: 'pointer',
-      border: '1px solid #e5e7eb'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateX(4px)';
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateX(0)';
-      e.currentTarget.style.boxShadow = 'none';
-    }}
+    <div 
+      onClick={handleClick}
+      style={{ 
+        display: 'flex', 
+        gap: '16px',
+        padding: '12px',
+        backgroundColor: '#f9fafb',
+        borderRadius: '12px',
+        transition: 'transform 0.2s, boxShadow 0.2s',
+        cursor: 'pointer',
+        border: '1px solid #e5e7eb'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateX(4px)';
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateX(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
     >
       {/* STEP 3: Real Image from Google Places API */}
       <img 
