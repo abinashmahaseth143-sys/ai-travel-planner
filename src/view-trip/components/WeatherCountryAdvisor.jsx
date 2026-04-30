@@ -55,7 +55,6 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
     'South Africa': { 'Jan': '18-28°C', 'Feb': '18-28°C', 'Mar': '16-26°C', 'Apr': '13-23°C', 'May': '10-20°C', 'Jun': '7-18°C', 'Jul': '7-18°C', 'Aug': '8-19°C', 'Sep': '11-22°C', 'Oct': '14-24°C', 'Nov': '16-26°C', 'Dec': '17-27°C', flag: '🇿🇦', best: 'Sep-Apr' },
     'Kenya': { 'Jan': '17-28°C', 'Feb': '17-29°C', 'Mar': '18-29°C', 'Apr': '18-28°C', 'May': '17-27°C', 'Jun': '16-26°C', 'Jul': '15-25°C', 'Aug': '15-25°C', 'Sep': '16-27°C', 'Oct': '17-27°C', 'Nov': '17-27°C', 'Dec': '17-27°C', flag: '🇰🇪', best: 'Jan-Feb, Jun-Sep' },
     'Tanzania': { 'Jan': '20-30°C', 'Feb': '20-30°C', 'Mar': '20-30°C', 'Apr': '19-29°C', 'May': '18-28°C', 'Jun': '17-27°C', 'Jul': '16-26°C', 'Aug': '17-27°C', 'Sep': '18-28°C', 'Oct': '19-29°C', 'Nov': '19-29°C', 'Dec': '20-30°C', flag: '🇹🇿', best: 'Jun-Oct' },
-    'Egypt': { 'Jan': '14-22°C', 'Feb': '15-24°C', 'Mar': '18-27°C', 'Apr': '21-31°C', 'May': '24-34°C', 'Jun': '27-36°C', 'Jul': '28-37°C', 'Aug': '28-37°C', 'Sep': '26-34°C', 'Oct': '23-31°C', 'Nov': '19-27°C', 'Dec': '15-23°C', flag: '🇪🇬', best: 'Oct-Apr' },
     
     // Americas
     'USA': { 'Jan': '-2-8°C', 'Feb': '0-10°C', 'Mar': '4-15°C', 'Apr': '9-20°C', 'May': '14-25°C', 'Jun': '19-29°C', 'Jul': '22-32°C', 'Aug': '21-31°C', 'Sep': '17-27°C', 'Oct': '10-21°C', 'Nov': '4-14°C', 'Dec': '0-9°C', flag: '🇺🇸', best: 'Apr-Jun, Sep-Oct' },
@@ -185,6 +184,7 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
           <span>🌟</span> Best Countries to Visit in {currentMonth}
         </h3>
         
+        {/* RESPONSIVE GRID - Updated for all devices */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
@@ -214,18 +214,19 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
                 e.currentTarget.style.borderColor = '#e5e7eb';
               }}
             >
-              {/* Card Header with Flag and Country Name */}
+              {/* Card Header with Flag and Country Name - Responsive */}
               <div style={{
-                padding: '20px 20px 12px 20px',
+                padding: 'clamp(12px, 4vw, 20px) clamp(12px, 4vw, 20px) 8px clamp(12px, 4vw, 20px)',
                 borderBottom: '1px solid #f3f4f6',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px'
+                gap: 'clamp(8px, 3vw, 12px)',
+                flexWrap: 'wrap'
               }}>
-                <span style={{ fontSize: '32px' }}>{country.flag || '🌍'}</span>
+                <span style={{ fontSize: 'clamp(28px, 8vw, 36px)' }}>{country.flag || '🌍'}</span>
                 <div>
                   <h3 style={{ 
-                    fontSize: '20px', 
+                    fontSize: 'clamp(16px, 4vw, 20px)', 
                     fontWeight: 'bold', 
                     margin: 0,
                     color: '#1f2937',
@@ -234,7 +235,7 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
                     {country.country}
                   </h3>
                   <span style={{ 
-                    fontSize: '11px', 
+                    fontSize: 'clamp(10px, 3vw, 11px)', 
                     color: '#10b981',
                     background: '#d1fae5',
                     padding: '2px 8px',
@@ -247,59 +248,64 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
                 </div>
               </div>
               
-              {/* Card Body */}
-              <div style={{ padding: '16px 20px' }}>
-                {/* Temperature */}
+              {/* Card Body - Responsive */}
+              <div style={{ 
+                padding: 'clamp(12px, 4vw, 16px) clamp(12px, 4vw, 20px)' 
+              }}>
+                {/* Temperature - Responsive */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
                   marginBottom: '12px',
                   background: '#fef3c7',
-                  padding: '8px 12px',
-                  borderRadius: '12px'
+                  padding: 'clamp(6px, 2vw, 8px) clamp(8px, 3vw, 12px)',
+                  borderRadius: '12px',
+                  flexWrap: 'wrap'
                 }}>
-                  <span style={{ fontSize: '20px' }}>🌡️</span>
+                  <span style={{ fontSize: 'clamp(16px, 5vw, 20px)' }}>🌡️</span>
                   <div>
-                    <div style={{ fontSize: '11px', color: '#92400e' }}>Expected Temperature</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#92400e', fontFamily: 'inherit' }}>{country.temp}</div>
+                    <div style={{ fontSize: 'clamp(10px, 3vw, 11px)', color: '#92400e' }}>Expected Temperature</div>
+                    <div style={{ fontSize: 'clamp(14px, 4vw, 18px)', fontWeight: 'bold', color: '#92400e', fontFamily: 'inherit' }}>{country.temp}</div>
                   </div>
                 </div>
                 
-                {/* Best Months */}
+                {/* Best Months - Responsive */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  marginBottom: '16px'
+                  marginBottom: '16px',
+                  flexWrap: 'wrap'
                 }}>
-                  <span style={{ fontSize: '16px' }}>📅</span>
+                  <span style={{ fontSize: 'clamp(14px, 4vw, 16px)' }}>📅</span>
                   <div>
-                    <div style={{ fontSize: '11px', color: '#6b7280' }}>Best Time to Visit</div>
-                    <div style={{ fontSize: '13px', fontWeight: '500', color: '#374151', fontFamily: 'inherit' }}>{country.bestMonths}</div>
+                    <div style={{ fontSize: 'clamp(10px, 3vw, 11px)', color: '#6b7280' }}>Best Time to Visit</div>
+                    <div style={{ fontSize: 'clamp(11px, 3vw, 13px)', fontWeight: '500', color: '#374151', fontFamily: 'inherit' }}>{country.bestMonths}</div>
                   </div>
                 </div>
               </div>
               
-              {/* Card Footer */}
+              {/* Card Footer - Responsive */}
               <div style={{
-                padding: '12px 20px',
+                padding: 'clamp(10px, 3vw, 12px) clamp(12px, 4vw, 20px)',
                 background: '#f8fafc',
                 borderTop: '1px solid #e5e7eb',
                 textAlign: 'center'
               }}>
                 <span style={{ 
-                  fontSize: '13px', 
+                  fontSize: 'clamp(11px, 3vw, 13px)', 
                   fontWeight: '500', 
                   color: '#3b82f6',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
-                  fontFamily: 'inherit'
+                  fontFamily: 'inherit',
+                  flexWrap: 'wrap'
                 }}>
                   Click to plan your trip → 
-                  <span style={{ fontSize: '16px' }}>✈️</span>
+                  <span style={{ fontSize: 'clamp(12px, 4vw, 16px)' }}>✈️</span>
                 </span>
               </div>
             </div>
