@@ -3,30 +3,72 @@ import { Link } from 'react-router-dom'
 
 function Hero() {
   return (
-    <div style={{textAlign: 'center', width: '100%', marginTop: '4rem'}}>
-      <h1 style={{fontSize: '50px', fontWeight: 'bold'}}>
-        <span style={{color: 'red'}}>Discover Your Next Adventure with AI:</span><br />
-        Personalised Travel Recommendations
-      </h1>
-      <p style={{fontSize: '20px', marginTop: '1rem'}}>
-        Your personal trip planner and travel curator, creating custom itineraries tailored to your interests and budget.
-      </p>
-      
-      {/* Black button with Link to create-trip */}
-      <Link to='/create-trip'>
-        <button style={{
-          backgroundColor: 'black',
+    <div style={{
+      minHeight: 'calc(100vh - 70px)',
+      width: '100%',
+      background: 'linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center'
+    }}>
+      {/* NO BOX - Just text directly on background */}
+      <div>
+        {/* Main Heading */}
+        <h1 style={{
+          fontSize: 'clamp(36px, 6vw, 52px)',
+          fontWeight: 'bold',
+          marginBottom: '20px',
           color: 'white',
-          padding: '12px 24px',
-          fontSize: '16px',
-          border: 'none',
-          borderRadius: '8px',
-          marginTop: '2rem',
-          cursor: 'pointer'
+          lineHeight: '1.2',
+          textShadow: '0 2px 10px rgba(0,0,0,0.2)'
         }}>
-          Get Started, It's Free
-        </button>
-      </Link>
+          💫 Travel With Heart,<br />Not Just Feet
+        </h1>
+
+        {/* Subtitle */}
+        <p style={{
+          fontSize: 'clamp(16px, 4vw, 18px)',
+          color: 'rgba(255,255,255,0.95)',
+          marginBottom: '10px'
+        }}>
+          Where you go matters. How you go matters more.
+        </p>
+
+        <p style={{
+          fontSize: '16px',
+          color: 'rgba(255,255,255,0.85)',
+          marginBottom: '35px',
+          fontWeight: '500'
+        }}>
+          Purposeful journeys for intentional travelers
+        </p>
+
+        {/* Button */}
+        <Link to='/create-trip'>
+          <button style={{
+            background: 'white',
+            color: '#ff0844',
+            padding: '14px 40px',
+            fontSize: '16px',
+            fontWeight: '600',
+            border: 'none',
+            borderRadius: '50px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+          }}>
+            ✨ Get Started, It's Free →
+          </button>
+        </Link>
+      </div>
     </div>
   )
 }

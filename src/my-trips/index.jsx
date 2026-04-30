@@ -1,23 +1,46 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { db } from '../service/firebaseConfig'
-import { collection, getDocs, query, orderBy } from 'firebase/firestore'
+import { db, auth } from '../service/firebaseConfig'
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
+import { toast } from 'sonner'
 
 function MyTrips() {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  // Check authentication status
   useEffect(() => {
-    fetchAllTrips();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      const guestMode = localStorage.getItem('guestMode') === 'true';
+      
+      if (guestMode && !currentUser) {
+        toast.info('Guest trips are not saved. Sign in to save your travel history permanently!');
+        navigate('/');
+      } else if (!currentUser && !guestMode) {
+        navigate('/login');
+      } else if (currentUser) {
+        fetchUserTrips(currentUser.uid);
+      } else {
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
-  const fetchAllTrips = async () => {
+  const fetchUserTrips = async (userId) => {
     try {
       setLoading(true);
       const tripsRef = collection(db, "AITrips");
-      const q = query(tripsRef, orderBy("createdAt", "desc"));
+      const q = query(
+        tripsRef, 
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc")
+      );
       const querySnapshot = await getDocs(q);
       
       const tripsData = [];
@@ -28,10 +51,13 @@ function MyTrips() {
         });
       });
       
-      console.log("Fetched trips:", tripsData);
+      console.log("Fetched trips for user:", tripsData);
       setTrips(tripsData);
     } catch (error) {
       console.error("Error fetching trips:", error);
+      if (error.code === 'failed-precondition') {
+        toast.info('Index is building. Please wait a moment and refresh.');
+      }
     } finally {
       setLoading(false);
     }
@@ -58,33 +84,104 @@ function MyTrips() {
     return "#6b7280";
   };
 
-  // Fallback image if no destination image is saved
   const getFallbackImage = (location) => {
     if (!location) return "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
     
     const locationLower = location.toLowerCase();
     
-    if (locationLower.includes('london') || locationLower.includes('uk') || locationLower.includes('england')) {
-      return "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&h=200&fit=crop";
-    }
-    if (locationLower.includes('paris') || locationLower.includes('france')) {
-      return "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=200&fit=crop";
-    }
-    if (locationLower.includes('new york') || locationLower.includes('nyc')) {
-      return "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400&h=200&fit=crop";
-    }
-    if (locationLower.includes('usa') || locationLower.includes('united states')) {
-      return "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=200&fit=crop";
-    }
-    if (locationLower.includes('japan') || locationLower.includes('tokyo')) {
-      return "https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=400&h=200&fit=crop";
-    }
-    if (locationLower.includes('italy') || locationLower.includes('rome')) {
-      return "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=200&fit=crop";
+    const imageMap = {
+      'nepal': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop',
+      'egypt': 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=400&h=200&fit=crop',
+      'costa rica': 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400&h=200&fit=crop',
+      'morocco': 'https://images.unsplash.com/photo-1489493887464-892be6d1da6a?w=400&h=200&fit=crop',
+      'usa': 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=200&fit=crop',
+      'united states': 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=200&fit=crop',
+      'japan': 'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=400&h=200&fit=crop',
+      'italy': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=200&fit=crop',
+      'france': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=200&fit=crop',
+      'thailand': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=400&h=200&fit=crop'
+    };
+    
+    for (const [key, url] of Object.entries(imageMap)) {
+      if (locationLower.includes(key)) return url;
     }
     
     return "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
   };
+
+  // If not logged in, show sign in button
+  if (!user && !loading) {
+    const guestMode = localStorage.getItem('guestMode') === 'true';
+    if (guestMode) {
+      return (
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto', 
+          padding: '80px 20px',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '24px' }}>👤</div>
+          <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '16px' }}>
+            Guest Mode Active
+          </h2>
+          <p style={{ color: '#6b7280', marginBottom: '32px' }}>
+            Sign in to save your travel history permanently!
+          </p>
+          <button
+            onClick={() => {
+              localStorage.removeItem('guestMode');
+              localStorage.removeItem('guestTripsGenerated');
+              navigate('/login');
+            }}
+            style={{
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              padding: '12px 32px',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold'
+            }}
+          >
+            Sign In to Save History
+          </button>
+        </div>
+      );
+    }
+    
+    return (
+      <div style={{ 
+        maxWidth: '1200px', 
+        margin: '0 auto', 
+        padding: '80px 20px',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '64px', marginBottom: '24px' }}>🔐</div>
+        <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '16px' }}>
+          Sign In to View Your History
+        </h2>
+        <p style={{ color: '#6b7280', marginBottom: '32px' }}>
+          Please sign in to see your travel history
+        </p>
+        <button
+          onClick={() => navigate('/login')}
+          style={{
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            padding: '12px 32px',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}
+        >
+          Sign In
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -101,7 +198,7 @@ function MyTrips() {
           fontSize: '40px', 
           color: '#3b82f6' 
         }} />
-        <p>Loading your trips...</p>
+        <p>Loading your travel history...</p>
         <style>{`
           @keyframes spin {
             from { transform: rotate(0deg); }
@@ -112,26 +209,28 @@ function MyTrips() {
     );
   }
 
+  // Empty state - No travel history yet
   if (trips.length === 0) {
     return (
       <div style={{ 
         maxWidth: '1200px', 
         margin: '0 auto', 
-        padding: '40px 20px',
+        padding: '80px 20px',
         textAlign: 'center'
       }}>
+        <div style={{ fontSize: '64px', marginBottom: '24px' }}>📜</div>
         <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '16px' }}>
-          🗺️ No Trips Yet
+          No Travel History Yet
         </h2>
-        <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-          You haven't created any trips. Start planning your next adventure!
+        <p style={{ color: '#6b7280', marginBottom: '32px' }}>
+          You haven't created any trips. Start planning your next adventure to build your history!
         </p>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/create-trip')}
           style={{
             backgroundColor: '#3b82f6',
             color: 'white',
-            padding: '12px 24px',
+            padding: '12px 32px',
             border: 'none',
             borderRadius: '8px',
             cursor: 'pointer',
@@ -148,11 +247,16 @@ function MyTrips() {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold' }}>
-          📋 My Trips
-        </h1>
+        <div>
+          <h1 style={{ fontSize: '32px', fontWeight: 'bold' }}>
+            📜 My Travel History
+          </h1>
+          <p style={{ color: '#6b7280', marginTop: '8px' }}>
+            Welcome back, {user.displayName?.split(' ')[0] || 'Traveler'}! You have {trips.length} saved {trips.length === 1 ? 'trip' : 'trips'} in your history
+          </p>
+        </div>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/create-trip')}
           style={{
             backgroundColor: '#3b82f6',
             color: 'white',
@@ -177,9 +281,6 @@ function MyTrips() {
           const userSelection = trip.userSelection || {};
           const budgetColor = getBudgetColor(userSelection.budget);
           const locationName = userSelection.location || "Unknown";
-          
-          // STEP 3: Use the saved destination image from Firebase
-          // If no saved image, use fallback based on location
           const imageUrl = userSelection.destinationImage || getFallbackImage(locationName);
           
           return (
@@ -204,7 +305,6 @@ function MyTrips() {
                 e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
               }}
             >
-              {/* STEP 3: REAL DESTINATION IMAGE from Google Places (saved during trip creation) */}
               <img 
                 src={imageUrl}
                 alt={locationName}
@@ -214,7 +314,6 @@ function MyTrips() {
                   objectFit: 'cover'
                 }}
                 onError={(e) => {
-                  // If image fails, use fallback
                   e.target.src = getFallbackImage(locationName);
                 }}
               />
@@ -268,7 +367,7 @@ function MyTrips() {
                 </div>
                 
                 <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '12px' }}>
-                  Created: {formatDate(trip.createdAt)}
+                  Added to history: {formatDate(trip.createdAt)}
                 </p>
                 
                 <div style={{ marginTop: '16px' }}>
@@ -289,7 +388,7 @@ function MyTrips() {
         })}
       </div>
     </div>
-  )
+  );
 }
 
-export default MyTrips
+export default MyTrips;

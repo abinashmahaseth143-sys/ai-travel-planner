@@ -1,16 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLoadScript, Autocomplete } from '@react-google-maps/api'
 import { Input } from '@/components/ui/input'
 import { SelectTravelesList, SelectBudgetOptions } from '../constants/options'
 import { toast } from 'sonner'
 import { Toaster } from '@/components/ui/sonner'
-import { chatSession } from '../lib/gemini'
-import { db } from '../service/firebaseConfig'
+import { db, auth } from '../service/firebaseConfig'
 import { doc, setDoc } from 'firebase/firestore'
-import { AiOutlineLoading3Quarters } from 'react-icons/ai'
+import { onAuthStateChanged } from 'firebase/auth'
+import { AiOutlineLoading3Quarters, AiOutlineArrowLeft } from 'react-icons/ai'
 import { useNavigate } from 'react-router-dom'
-import VoiceButton from '../components/VoiceButton'
 import WeatherCountryAdvisor from '../components/WeatherCountryAdvisor'
+import { generateTrip } from '../lib/aiService'  // ← NEW: Import fallback AI service
 
 const libraries = ['places'];
 
@@ -21,7 +21,38 @@ function CreateTrip() {
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [loading, setLoading] = useState(false);
   const [autocomplete, setAutocomplete] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [guestTripsRemaining, setGuestTripsRemaining] = useState(2);
+  const [isListening, setIsListening] = useState(false);
+  const [listeningFor, setListeningFor] = useState(null);
   const navigate = useNavigate();
+
+  let recognitionRef = null;
+
+  // Check authentication status
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const guestMode = localStorage.getItem('guestMode') === 'true';
+      const guestTripsGenerated = parseInt(localStorage.getItem('guestTripsGenerated') || '0');
+      const maxFreeTrips = 2;
+      
+      setGuestTripsRemaining(maxFreeTrips - guestTripsGenerated);
+      
+      if (!user && !guestMode) {
+        console.log("User not authenticated, redirecting to login...");
+        navigate('/login');
+      } else if (user) {
+        console.log("User authenticated:", user.email);
+        setIsAuthenticated(true);
+        setCurrentUser(user);
+      } else if (guestMode) {
+        console.log("Guest mode active, remaining trips:", guestTripsRemaining);
+        setIsAuthenticated(true);
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate, guestTripsRemaining]);
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: "AIzaSyAnJwDgg2l5yJJUPL69v4qtS0uzoYcFpj0",
@@ -45,66 +76,115 @@ function CreateTrip() {
     }
   };
 
-  // Voice Handlers for ALL sections
-  const handleVoiceDestination = (voiceText) => {
-    console.log("Voice destination:", voiceText);
-    setPlace({
-      label: voiceText,
-      value: { formatted_address: voiceText }
-    });
-    const inputElement = document.querySelector('input[placeholder*="Search"]');
-    if (inputElement) {
-      inputElement.value = voiceText;
+  const stopListening = () => {
+    if (recognitionRef) {
+      recognitionRef.stop();
+      recognitionRef = null;
     }
-    toast.success(`Destination set to ${voiceText}`);
+    setIsListening(false);
+    setListeningFor(null);
   };
 
-  const handleVoiceDays = (voiceText) => {
-    console.log("Voice days:", voiceText);
-    const numberMatch = voiceText.match(/\d+/);
-    if (numberMatch) {
-      setDays(numberMatch[0]);
-      toast.success(`Days set to ${numberMatch[0]}`);
-    } else {
-      toast("Please say a number like '3 days' or '5 days'");
+  const startListening = (field) => {
+    if (isListening) {
+      stopListening();
+      return;
     }
-  };
-
-  const handleVoiceBudget = (voiceText) => {
-    console.log("Voice budget:", voiceText);
-    const lowerText = voiceText.toLowerCase();
-    if (lowerText.includes('cheap') || lowerText.includes('budget')) {
-      setSelectedBudget(1);
-      toast.success("Budget set to Cheap");
-    } else if (lowerText.includes('moderate') || lowerText.includes('medium')) {
-      setSelectedBudget(2);
-      toast.success("Budget set to Moderate");
-    } else if (lowerText.includes('luxury') || lowerText.includes('expensive')) {
-      setSelectedBudget(3);
-      toast.success("Budget set to Luxury");
-    } else {
-      toast("Please say 'cheap', 'moderate', or 'luxury'");
+    
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice recognition not supported. Please use Chrome, Edge, or Safari.');
+      return;
     }
-  };
-
-  const handleVoiceTraveler = (voiceText) => {
-    console.log("Voice traveler:", voiceText);
-    const lowerText = voiceText.toLowerCase();
-    if (lowerText.includes('just me') || lowerText.includes('alone') || lowerText.includes('solo')) {
-      setSelectedTraveler(1);
-      toast.success("Traveler set to Just Me");
-    } else if (lowerText.includes('couple') || lowerText.includes('two people') || lowerText.includes('2 people')) {
-      setSelectedTraveler(2);
-      toast.success("Traveler set to Couple");
-    } else if (lowerText.includes('family')) {
-      setSelectedTraveler(3);
-      toast.success("Traveler set to Family");
-    } else if (lowerText.includes('friends') || lowerText.includes('group')) {
-      setSelectedTraveler(4);
-      toast.success("Traveler set to Friends");
-    } else {
-      toast("Please say 'just me', 'couple', 'family', or 'friends'");
-    }
+    
+    setListeningFor(field);
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognitionRef = recognition;
+    
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef = null;
+      setListeningFor(null);
+    };
+    
+    recognition.onerror = (event) => {
+      console.error('Recognition error:', event.error);
+      setIsListening(false);
+      recognitionRef = null;
+      setListeningFor(null);
+      if (event.error === 'not-allowed') {
+        alert('Please allow microphone access to use voice input.');
+      }
+    };
+    
+    recognition.onresult = (event) => {
+      const spokenText = event.results[0][0].transcript;
+      console.log(`Voice input for ${field}:`, spokenText);
+      
+      if (field === 'destination') {
+        setPlace({
+          label: spokenText,
+          value: { formatted_address: spokenText }
+        });
+        const inputElement = document.querySelector('input[placeholder*="Search"]');
+        if (inputElement) {
+          inputElement.value = spokenText;
+        }
+        toast.success(`Destination set to ${spokenText}`);
+      } 
+      else if (field === 'days') {
+        const numberMatch = spokenText.match(/\d+/);
+        if (numberMatch) {
+          setDays(numberMatch[0]);
+          toast.success(`Days set to ${numberMatch[0]}`);
+        } else {
+          toast.info("Please say a number like '3 days'");
+        }
+      }
+      else if (field === 'budget') {
+        const lowerText = spokenText.toLowerCase();
+        if (lowerText.includes('cheap') || lowerText.includes('budget')) {
+          setSelectedBudget(1);
+          toast.success("Budget set to Cheap");
+        } else if (lowerText.includes('moderate') || lowerText.includes('medium')) {
+          setSelectedBudget(2);
+          toast.success("Budget set to Moderate");
+        } else if (lowerText.includes('luxury') || lowerText.includes('expensive')) {
+          setSelectedBudget(3);
+          toast.success("Budget set to Luxury");
+        } else {
+          toast.info("Please say 'cheap', 'moderate', or 'luxury'");
+        }
+      }
+      else if (field === 'traveler') {
+        const lowerText = spokenText.toLowerCase();
+        if (lowerText.includes('just me') || lowerText.includes('alone') || lowerText.includes('solo')) {
+          setSelectedTraveler(1);
+          toast.success("Traveler set to Just Me");
+        } else if (lowerText.includes('couple') || lowerText.includes('two people') || lowerText.includes('2 people')) {
+          setSelectedTraveler(2);
+          toast.success("Traveler set to Couple");
+        } else if (lowerText.includes('family')) {
+          setSelectedTraveler(3);
+          toast.success("Traveler set to Family");
+        } else if (lowerText.includes('friends') || lowerText.includes('group')) {
+          setSelectedTraveler(4);
+          toast.success("Traveler set to Friends");
+        } else {
+          toast.info("Please say 'just me', 'couple', 'family', or 'friends'");
+        }
+      }
+    };
+    
+    recognition.start();
   };
 
   const handleCountrySelect = (countryName) => {
@@ -123,7 +203,17 @@ function CreateTrip() {
 
   const SaveAiTrip = async (TripData) => {
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const user = auth.currentUser;
+      const guestMode = localStorage.getItem('guestMode') === 'true';
+      const guestTripsGenerated = parseInt(localStorage.getItem('guestTripsGenerated') || '0');
+      const maxFreeTrips = 2;
+      
+      if (guestMode && guestTripsGenerated >= maxFreeTrips) {
+        toast.error(`You've reached the free limit of ${maxFreeTrips} trips! Please sign in to create more.`);
+        navigate('/login');
+        return false;
+      }
+      
       const docId = Date.now().toString();
       
       const formData = {
@@ -137,60 +227,76 @@ function CreateTrip() {
       await setDoc(doc(db, "AITrips", docId), {
         userSelection: formData,
         tripData: TripData,
-        userEmail: user?.email || 'anonymous',
-        userId: user?.uid || 'guest',
+        userEmail: user?.email || 'guest@temporary.com',
+        userId: user?.uid || `guest_${docId}`,
+        userName: user?.displayName || 'Guest User',
+        isGuest: guestMode,
         id: docId,
         createdAt: new Date().toISOString()
       });
-      navigate('/view-trip/' + docId);
       
-      console.log("Trip saved successfully!");
+      if (guestMode) {
+        const newCount = guestTripsGenerated + 1;
+        localStorage.setItem('guestTripsGenerated', newCount.toString());
+        const remaining = maxFreeTrips - newCount;
+        if (remaining === 0) {
+          toast.warning(`You've used all ${maxFreeTrips} free trips! Sign in to save more.`);
+        } else {
+          toast.success(`Trip saved! You have ${remaining} free ${remaining === 1 ? 'trip' : 'trips'} remaining.`);
+        }
+      }
+      
+      navigate('/view-trip/' + docId);
       return true;
     } catch (error) {
       console.error("Error saving trip:", error);
+      toast.error("Failed to save trip. Please try again.");
       return false;
     }
   };
 
+  // UPDATED: handleGenerateTrip with fallback AI service
   const handleGenerateTrip = async () => {
     if (!place || !days || !selectedTraveler || !selectedBudget) {
       toast("Please fill all details")
       return
     }
 
+    const guestMode = localStorage.getItem('guestMode') === 'true';
+    const guestTripsGenerated = parseInt(localStorage.getItem('guestTripsGenerated') || '0');
+    const maxFreeTrips = 2;
+    
+    if (guestMode && guestTripsGenerated >= maxFreeTrips) {
+      toast.error(`You've reached the free limit of ${maxFreeTrips} trips! Please sign in to create more.`);
+      navigate('/login');
+      return;
+    }
+
     setLoading(true)
-    toast.loading("Generating your personalized itinerary...")
+    const loadingToast = toast.loading("Generating your personalized itinerary...")
 
     try {
       const travelerType = SelectTravelesList.find(t => t.id === selectedTraveler)?.title
       const budgetType = SelectBudgetOptions.find(b => b.id === selectedBudget)?.title
 
-      const AI_PROMPT = `Generate Travel Plan for Location: {{location}}, for {{totalDays}} Days for {{traveler}} with a {{budget}} budget. Give me Hotels options list with HotelName, Hotel address, Price, hotel image url, geo coordinates, rating, descriptions and suggest itinerary with placeName, Place Details, Place Image Url, Geo Coordinates, ticket Pricing, rating, Time travel each of the location for {{totalDays}} days with each day plan with best time to visit in JSON format.`
-
-      const FINAL_PROMPT = AI_PROMPT
-        .replace('{{location}}', place?.label)
-        .replace('{{totalDays}}', days)
-        .replace('{{traveler}}', travelerType)
-        .replace('{{budget}}', budgetType)
-
-      const result = await chatSession.sendMessage(FINAL_PROMPT)
-      const responseText = result?.response?.text()
+      // Use the new AI service with fallback
+      const result = await generateTrip(
+        place?.label,
+        days,
+        travelerType,
+        budgetType
+      );
       
-      let itineraryData
-      try {
-        const cleanJson = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-        itineraryData = JSON.parse(cleanJson)
-      } catch (parseError) {
-        toast.error("Failed to parse itinerary data")
-        setLoading(false)
-        return
+      if (result.usedFallback) {
+        toast.dismiss(loadingToast);
+        toast.info(result.fallbackMessage);
       }
       
-      const saved = await SaveAiTrip(itineraryData)
+      const saved = await SaveAiTrip(result.data);
       
-      localStorage.setItem('itinerary', JSON.stringify(itineraryData))
+      localStorage.setItem('itinerary', JSON.stringify(result.data))
       
-      toast.dismiss()
+      toast.dismiss(loadingToast);
       if (saved) {
         toast.success("Trip generated and saved successfully! 🎉")
       } else {
@@ -199,177 +305,501 @@ function CreateTrip() {
       
     } catch (error) {
       console.error("Error:", error)
-      toast.dismiss()
+      toast.dismiss(loadingToast);
       toast.error("Failed to generate itinerary. Please try again.")
     } finally {
       setLoading(false)
     }
   };
 
+  if (!isAuthenticated && auth.currentUser === null) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '60vh',
+        flexDirection: 'column',
+        gap: '20px'
+      }}>
+        <AiOutlineLoading3Quarters style={{ animation: 'spin 1s linear infinite', fontSize: '40px', color: '#3b82f6' }} />
+        <p>Checking authentication...</p>
+      </div>
+    );
+  }
+
   if (!isLoaded) {
     return <div style={{ textAlign: 'center', marginTop: '100px' }}>Loading Google Maps...</div>;
   }
 
+  const guestMode = localStorage.getItem('guestMode') === 'true';
+  const guestTripsGenerated = parseInt(localStorage.getItem('guestTripsGenerated') || '0');
+  const remainingTrips = 2 - guestTripsGenerated;
+
+  const micButtonStyle = (isActive) => ({
+    background: isActive 
+      ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
+      : 'linear-gradient(135deg, #10b981, #059669)',
+    border: 'none',
+    borderRadius: '50%',
+    width: '44px',
+    height: '44px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.3s ease',
+    boxShadow: isActive 
+      ? '0 0 0 3px rgba(239, 68, 68, 0.3), 0 4px 12px rgba(0,0,0,0.15)' 
+      : '0 4px 12px rgba(16, 185, 129, 0.3)',
+    animation: isActive ? 'pulse 1.5s infinite' : 'none'
+  });
+
   return (
-    <div style={{width: '100%', marginTop: '40px'}}>
+    <div style={{
+      minHeight: '100vh',
+      width: '100%',
+      maxWidth: '100%',
+      overflowX: 'hidden',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '40px 20px',
+      position: 'relative',
+      margin: 0,
+      boxSizing: 'border-box'
+    }}>
       <Toaster />
       
-      <div style={{textAlign: 'center', maxWidth: '800px', margin: '0 auto', padding: '0 16px'}}>
-        <h2 style={{fontWeight: 'bold', fontSize: '30px'}}>Tell us your travel preference</h2>
-        <p style={{marginTop: '12px', color: '#6b7280', fontSize: '20px'}}>
-          Just provide some basic information, and our trip planner will generate customized itinerary based on your preferences.
-        </p>
-      </div>
-      
-      {/* Weather Country Advisor */}
-      <WeatherCountryAdvisor 
-        destination={place?.label} 
-        onSelectDestination={handleCountrySelect}
-      />
-      
-      {/* 1. DESTINATION Section with Voice */}
-      <div style={{textAlign: 'center', marginTop: '40px'}}>
-        <h2 style={{fontSize: '20px', margin: '12px 0', fontWeight: 'bold'}}>What is destination of choice?</h2>
-        <div style={{maxWidth: '500px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '8px'}}>
-          <div style={{flex: 1, position: 'relative'}}>
-            <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
-              <input
-                type="text"
-                placeholder="Search or speak to find any city, country, or place..."
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  outline: 'none'
+      {/* Main Content Container */}
+      <div style={{
+        maxWidth: '1200px',
+        width: '100%',
+        margin: '0 auto',
+        background: 'rgba(255, 255, 255, 0.98)',
+        borderRadius: '32px',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+        overflow: 'hidden',
+        boxSizing: 'border-box'
+      }}>
+        
+        {/* Header Section */}
+        <div style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+          padding: '32px 24px',
+          textAlign: 'center',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '-100%',
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+            animation: 'shine 3s infinite'
+          }} />
+          
+          <h2 style={{ 
+            fontSize: 'clamp(24px, 5vw, 32px)', 
+            fontWeight: 'bold', 
+            marginBottom: '12px', 
+            fontFamily: 'inherit',
+            wordBreak: 'break-word',
+            textShadow: '0 2px 10px rgba(0,0,0,0.2)'
+          }}>
+            ✨ Your Travel Story Starts Here
+          </h2>
+          
+          <p style={{ 
+            fontSize: 'clamp(14px, 4vw, 16px)', 
+            opacity: 0.95, 
+            fontFamily: 'inherit',
+            maxWidth: '600px',
+            margin: '0 auto',
+            lineHeight: '1.5'
+          }}>
+            Answer a few quick questions about your dream trip
+          </p>
+          
+          <p style={{ 
+            fontSize: 'clamp(14px, 4vw, 16px)', 
+            opacity: 0.9, 
+            fontFamily: 'inherit',
+            maxWidth: '600px',
+            margin: '8px auto 0',
+            lineHeight: '1.5'
+          }}>
+            Get a custom itinerary designed just for you
+          </p>
+          
+          {currentUser && (
+            <p style={{ marginTop: '16px', fontSize: '14px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', display: 'inline-block', padding: '6px 16px', borderRadius: '40px', fontFamily: 'inherit' }}>
+              ✓ Signed in as {currentUser.displayName || currentUser.email}
+            </p>
+          )}
+          {guestMode && !currentUser && (
+            <p style={{ marginTop: '16px', fontSize: '14px', background: '#fef3c7', color: '#d97706', display: 'inline-block', padding: '6px 16px', borderRadius: '40px', fontFamily: 'inherit' }}>
+              🎁 Guest Mode: {remainingTrips} free {remainingTrips === 1 ? 'trip' : 'trips'} remaining
+            </p>
+          )}
+        </div>
+        
+        {/* Content Body */}
+        <div style={{ 
+          padding: 'clamp(20px, 5vw, 40px)',
+          boxSizing: 'border-box'
+        }}>
+          
+          {/* Weather Advisor Section */}
+          <div style={{ overflowX: 'auto' }}>
+            <WeatherCountryAdvisor 
+              destination={place?.label} 
+              onSelectDestination={handleCountrySelect}
+            />
+          </div>
+          
+          {/* Divider */}
+          <div style={{ 
+            height: '2px', 
+            background: 'linear-gradient(90deg, transparent, #667eea, #764ba2, transparent)',
+            margin: '32px 0',
+            borderRadius: '2px'
+          }} />
+          
+          {/* Destination Section */}
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '28px' }}>📍</span>
+              <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>Where would you like to go?</h3>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '200px' }}>
+                <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
+                  <input
+                    type="text"
+                    placeholder="Search for any city, country, or place..."
+                    style={{
+                      width: '100%',
+                      padding: '14px 16px',
+                      fontSize: '15px',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '16px',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.2s ease',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#667eea';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#e5e7eb';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </Autocomplete>
+              </div>
+              <button
+                onClick={() => startListening('destination')}
+                onDoubleClick={stopListening}
+                style={micButtonStyle(isListening && listeningFor === 'destination')}
+                title={isListening && listeningFor === 'destination' ? "Listening... Double-click to stop" : "Click to speak destination"}
+              >
+                {isListening && listeningFor === 'destination' ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                    <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" fill="none"/>
+                    <rect x="9" y="9" width="6" height="6" fill="white" rx="1"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Days Section */}
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '28px' }}>📅</span>
+              <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>How many days are you planning?</h3>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <Input 
+                type="number"
+                placeholder="Enter number of days (e.g., 3, 5, 7)"
+                value={days}
+                onChange={(e) => setDays(e.target.value)}
+                style={{ 
+                  flex: 1,
+                  minWidth: '200px',
+                  padding: '14px 16px', 
+                  fontSize: '15px', 
+                  border: '2px solid #e5e7eb', 
+                  borderRadius: '16px',
+                  fontFamily: 'inherit',
+                  boxSizing: 'border-box',
+                  transition: 'all 0.2s ease'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
                 }}
               />
-            </Autocomplete>
-          </div>
-          <VoiceButton onResult={handleVoiceDestination} label="destination" />
-        </div>
-      </div>
-
-      {/* 2. NUMBER OF DAYS Section */}
-      <div style={{textAlign: 'center', marginTop: '40px'}}>
-        <h2 style={{fontSize: '20px', margin: '12px 0', fontWeight: 'bold'}}>How many days are you planning your trip?</h2>
-        <div style={{maxWidth: '500px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '8px'}}>
-          <Input 
-            type="number"
-            placeholder="Ex: 3"
-            value={days}
-            onChange={(e) => setDays(e.target.value)}
-            style={{ flex: 1, padding: '12px', fontSize: '16px', border: '1px solid #d1d5db', borderRadius: '8px' }}
-          />
-          <VoiceButton onResult={handleVoiceDays} label="days" />
-        </div>
-      </div>
-
-      {/* 3. BUDGET Section */}
-      <div style={{textAlign: 'center', marginTop: '40px'}}>
-        <h2 style={{fontSize: '20px', margin: '12px 0', fontWeight: 'bold'}}>What is Your Budget?</h2>
-        <div style={{maxWidth: '900px', margin: '0 auto', padding: '0 20px'}}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
-            {SelectBudgetOptions.map((item, index) => (
-              <div 
-                key={index} 
-                onClick={() => setSelectedBudget(item.id)}
-                style={{
-                  cursor: 'pointer',
-                  padding: '20px',
-                  flex: 1,
-                  minWidth: '150px',
-                  border: selectedBudget === item.id ? '2px solid #3b82f6' : '1px solid #e5e7eb',
-                  borderRadius: '12px',
-                  backgroundColor: selectedBudget === item.id ? '#eff6ff' : 'white',
-                  textAlign: 'center',
-                  transition: 'all 0.2s'
-                }}
+              <button
+                onClick={() => startListening('days')}
+                onDoubleClick={stopListening}
+                style={micButtonStyle(isListening && listeningFor === 'days')}
+                title={isListening && listeningFor === 'days' ? "Listening... Double-click to stop" : "Click to speak number of days"}
               >
-                <div style={{fontSize: '40px', marginBottom: '8px'}}>{item.icon}</div>
-                <h3 style={{fontWeight: 'bold', fontSize: '18px'}}>{item.title}</h3>
-                <p style={{fontSize: '14px', color: '#6b7280'}}>{item.desc}</p>
-              </div>
-            ))}
+                {isListening && listeningFor === 'days' ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                    <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" fill="none"/>
+                    <rect x="9" y="9" width="6" height="6" fill="white" rx="1"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <VoiceButton onResult={handleVoiceBudget} label="budget" />
-            <span style={{ fontSize: '12px', color: '#6b7280' }}>🎤 Say: "cheap", "moderate", or "luxury"</span>
-          </div>
-        </div>
-      </div>
 
-      {/* 4. TRAVELER Section */}
-      <div style={{textAlign: 'center', marginTop: '40px'}}>
-        <h2 style={{fontSize: '20px', margin: '12px 0', fontWeight: 'bold'}}>Who do you plan on traveling with on your next adventure?</h2>
-        <div style={{maxWidth: '900px', margin: '0 auto', padding: '0 20px'}}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
-            {SelectTravelesList.map((item, index) => (
-              <div 
-                key={index} 
-                onClick={() => setSelectedTraveler(item.id)}
-                style={{
-                  cursor: 'pointer',
-                  padding: '20px',
-                  flex: 1,
-                  minWidth: '120px',
-                  border: selectedTraveler === item.id ? '2px solid #3b82f6' : '1px solid #e5e7eb',
-                  borderRadius: '12px',
-                  backgroundColor: selectedTraveler === item.id ? '#eff6ff' : 'white',
-                  textAlign: 'center',
-                  transition: 'all 0.2s'
-                }}
+          {/* Budget Section */}
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '28px' }}>💰</span>
+              <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>What is your budget?</h3>
+            </div>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
+              gap: '16px', 
+              marginBottom: '20px' 
+            }}>
+              {SelectBudgetOptions.map((item, index) => (
+                <div 
+                  key={index} 
+                  onClick={() => setSelectedBudget(item.id)}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '20px',
+                    border: selectedBudget === item.id ? '2px solid #667eea' : '2px solid #e5e7eb',
+                    borderRadius: '16px',
+                    backgroundColor: selectedBudget === item.id ? '#f0f4ff' : 'white',
+                    textAlign: 'center',
+                    transition: 'all 0.3s ease',
+                    boxShadow: selectedBudget === item.id ? '0 4px 12px rgba(102, 126, 234, 0.2)' : 'none',
+                    transform: selectedBudget === item.id ? 'scale(1.02)' : 'scale(1)'
+                  }}
+                >
+                  <div style={{ fontSize: '40px', marginBottom: '8px' }}>{item.icon}</div>
+                  <h4 style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '4px', fontFamily: 'inherit' }}>{item.title}</h4>
+                  <p style={{ fontSize: '13px', color: '#6b7280', fontFamily: 'inherit' }}>{item.desc}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button
+                onClick={() => startListening('budget')}
+                onDoubleClick={stopListening}
+                style={micButtonStyle(isListening && listeningFor === 'budget')}
+                title={isListening && listeningFor === 'budget' ? "Listening... Double-click to stop" : "Click to speak budget (cheap, moderate, luxury)"}
               >
-                <div style={{fontSize: '40px', marginBottom: '8px'}}>{item.icon}</div>
-                <h3 style={{fontWeight: 'bold', fontSize: '18px'}}>{item.title}</h3>
-                <p style={{fontSize: '14px', color: '#6b7280'}}>{item.desc}</p>
-                <p style={{fontSize: '12px', color: '#9ca3af', marginTop: '8px'}}>{item.people}</p>
-              </div>
-            ))}
+                {isListening && listeningFor === 'budget' ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                    <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" fill="none"/>
+                    <rect x="9" y="9" width="6" height="6" fill="white" rx="1"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <VoiceButton onResult={handleVoiceTraveler} label="traveler type" />
-            <span style={{ fontSize: '12px', color: '#6b7280' }}>🎤 Say: "just me", "couple", "family", or "friends"</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Generate Trip Button */}
-      <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '40px', marginBottom: '40px', paddingRight: '20px'}}>
-        <button 
-          onClick={handleGenerateTrip}
-          disabled={loading}
-          style={{
-            backgroundColor: loading ? '#9ca3af' : '#3b82f6',
-            color: 'white',
-            padding: '12px 32px',
-            borderRadius: '8px',
-            border: 'none',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            display: 'flex',
+          {/* Traveler Section */}
+          <div style={{ marginBottom: '40px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '28px' }}>👥</span>
+              <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>Who's joining the adventure?</h3>
+            </div>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+              gap: '16px', 
+              marginBottom: '20px' 
+            }}>
+              {SelectTravelesList.map((item, index) => (
+                <div 
+                  key={index} 
+                  onClick={() => setSelectedTraveler(item.id)}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '16px',
+                    border: selectedTraveler === item.id ? '2px solid #667eea' : '2px solid #e5e7eb',
+                    borderRadius: '16px',
+                    backgroundColor: selectedTraveler === item.id ? '#f0f4ff' : 'white',
+                    textAlign: 'center',
+                    transition: 'all 0.3s ease',
+                    boxShadow: selectedTraveler === item.id ? '0 4px 12px rgba(102, 126, 234, 0.2)' : 'none',
+                    transform: selectedTraveler === item.id ? 'scale(1.02)' : 'scale(1)'
+                  }}
+                >
+                  <div style={{ fontSize: '36px', marginBottom: '8px' }}>{item.icon}</div>
+                  <h4 style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '4px', fontFamily: 'inherit' }}>{item.title}</h4>
+                  <p style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px', fontFamily: 'inherit' }}>{item.desc}</p>
+                  <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'inherit' }}>{item.people}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button
+                onClick={() => startListening('traveler')}
+                onDoubleClick={stopListening}
+                style={micButtonStyle(isListening && listeningFor === 'traveler')}
+                title={isListening && listeningFor === 'traveler' ? "Listening... Double-click to stop" : "Click to speak traveler type"}
+              >
+                {isListening && listeningFor === 'traveler' ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                    <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" fill="none"/>
+                    <rect x="9" y="9" width="6" height="6" fill="white" rx="1"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Action Buttons Row */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
             alignItems: 'center',
-            gap: '10px'
-          }}
-        >
-          {loading ? (
-            <>
-              <AiOutlineLoading3Quarters style={{ animation: 'spin 1s linear infinite' }} />
-              Generating...
-            </>
-          ) : (
-            'Generate My Trip'
-          )}
-        </button>
+            gap: '16px',
+            flexWrap: 'wrap',
+            marginTop: '20px'
+          }}>
+            {/* Back Button - Left Side */}
+            <button 
+              onClick={() => navigate('/')}
+              style={{
+                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                color: 'white',
+                padding: '14px 40px',
+                borderRadius: '40px',
+                border: 'none',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontFamily: 'inherit',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+              }}
+            >
+              <AiOutlineArrowLeft size={18} />
+              Back to Home
+            </button>
+            
+            {/* Generate Button - Right Side */}
+            <button 
+              onClick={handleGenerateTrip}
+              disabled={loading}
+              style={{
+                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                color: 'white',
+                padding: '14px 40px',
+                borderRadius: '40px',
+                border: 'none',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontFamily: 'inherit',
+                transition: 'all 0.3s ease',
+                opacity: loading ? 0.6 : 1,
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+              }}
+            >
+              {loading ? (
+                <>
+                  <AiOutlineLoading3Quarters style={{ animation: 'spin 1s linear infinite' }} />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  ✨ Generate My Trip
+                </>
+              )}
+            </button>
+          </div>
+          
+        </div>
       </div>
-
+      
       <style>
         {`
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            overflow-x: hidden;
+            width: 100%;
+            position: relative;
+          }
+          
+          @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+          }
           @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
+          }
+          @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 100%; }
+            100% { left: 100%; }
           }
         `}
       </style>

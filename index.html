@@ -7,11 +7,25 @@
     <meta name="google-site-verification" content="GZsDTolO4CE1iqKigcrYRtCaYIYlHadNGry_PDhMU_s" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>ai-travel-planner</title>
+    
+    <!-- Global sans-serif font style -->
+    <style>
+      * {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     
-    <!-- ADD THIS GOOGLE MAPS SCRIPT -->
+    <!-- GOOGLE MAPS SCRIPT -->
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnJwDgg2l5yJJUPL69v4qtS0uzoYcFpj0&libraries=places&loading=async"></script>
     
     <script type="module" src="/src/main.jsx"></script>
