@@ -7,8 +7,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
-disthttps://www.my-travel-planner.duckdns.org/
+
+# Build outputs
+dist
 dist-ssr
 *.local
 
@@ -23,4 +26,13 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Vercel
 .vercel
+
+# Firebase service account
+service-account-key.json
