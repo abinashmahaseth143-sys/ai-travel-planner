@@ -10,7 +10,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { AiOutlineLoading3Quarters, AiOutlineArrowLeft } from 'react-icons/ai'
 import { useNavigate } from 'react-router-dom'
 import WeatherCountryAdvisor from '../components/WeatherCountryAdvisor'
-import { generateTrip } from '../lib/aiService'  // ← NEW: Import fallback AI service
+import { generateTrip } from '../lib/aiService'
 
 const libraries = ['places'];
 
@@ -255,7 +255,6 @@ function CreateTrip() {
     }
   };
 
-  // UPDATED: handleGenerateTrip with fallback AI service
   const handleGenerateTrip = async () => {
     if (!place || !days || !selectedTraveler || !selectedBudget) {
       toast("Please fill all details")
@@ -279,7 +278,6 @@ function CreateTrip() {
       const travelerType = SelectTravelesList.find(t => t.id === selectedTraveler)?.title
       const budgetType = SelectBudgetOptions.find(b => b.id === selectedBudget)?.title
 
-      // Use the new AI service with fallback
       const result = await generateTrip(
         place?.label,
         days,
@@ -452,7 +450,14 @@ function CreateTrip() {
         }}>
           
           {/* Weather Advisor Section */}
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ 
+            overflowX: 'auto', 
+            overflowY: 'visible',
+            display: 'block',
+            width: '100%',
+            WebkitOverflowScrolling: 'touch',
+            marginBottom: '32px'
+          }}>
             <WeatherCountryAdvisor 
               destination={place?.label} 
               onSelectDestination={handleCountrySelect}
@@ -684,33 +689,38 @@ function CreateTrip() {
             </div>
           </div>
 
-          {/* Action Buttons Row */}
+          {/* Action Buttons Row - Responsive: Full text on laptop, short on mobile */}
           <div style={{ 
             display: 'flex', 
-            justifyContent: 'space-between', 
+            justifyContent: 'space-between',
             alignItems: 'center',
             gap: '16px',
-            flexWrap: 'wrap',
-            marginTop: '20px'
+            flexWrap: 'nowrap',
+            marginTop: '20px',
+            width: '100%'
           }}>
-            {/* Back Button - Left Side */}
+            {/* Back Button - LEFT SIDE */}
             <button 
               onClick={() => navigate('/')}
               style={{
                 background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
                 color: 'white',
-                padding: '14px 40px',
+                padding: 'clamp(10px, 1.5vw, 14px) clamp(16px, 3vw, 32px)',
                 borderRadius: '40px',
                 border: 'none',
-                fontSize: '16px',
-                fontWeight: 'bold',
+                fontSize: 'clamp(13px, 1.5vw, 16px)',
+                fontWeight: '600',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                justifyContent: 'center',
+                gap: '8px',
                 fontFamily: 'inherit',
                 transition: 'all 0.3s ease',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                flex: 1,
+                whiteSpace: 'nowrap',
+                minWidth: '0'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
@@ -721,30 +731,36 @@ function CreateTrip() {
                 e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
               }}
             >
-              <AiOutlineArrowLeft size={18} />
-              Back to Home
+              <AiOutlineArrowLeft size={16} />
+              {/* Responsive text: Shows "Back" on mobile, "Back to Home" on laptop */}
+              <span className="mobile-text">Back</span>
+              <span className="laptop-text">Back to Home</span>
             </button>
             
-            {/* Generate Button - Right Side */}
+            {/* Generate Button - RIGHT SIDE */}
             <button 
               onClick={handleGenerateTrip}
               disabled={loading}
               style={{
                 background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
                 color: 'white',
-                padding: '14px 40px',
+                padding: 'clamp(10px, 1.5vw, 14px) clamp(16px, 3vw, 32px)',
                 borderRadius: '40px',
                 border: 'none',
-                fontSize: '16px',
-                fontWeight: 'bold',
+                fontSize: 'clamp(13px, 1.5vw, 16px)',
+                fontWeight: '600',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                justifyContent: 'center',
+                gap: '8px',
                 fontFamily: 'inherit',
                 transition: 'all 0.3s ease',
                 opacity: loading ? 0.6 : 1,
-                boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                flex: 1,
+                whiteSpace: 'nowrap',
+                minWidth: '0'
               }}
               onMouseEnter={(e) => {
                 if (!loading) {
@@ -760,11 +776,14 @@ function CreateTrip() {
               {loading ? (
                 <>
                   <AiOutlineLoading3Quarters style={{ animation: 'spin 1s linear infinite' }} />
-                  Generating...
+                  <span className="mobile-text">Gen...</span>
+                  <span className="laptop-text">Generating...</span>
                 </>
               ) : (
                 <>
-                  ✨ Generate My Trip
+                  ✨
+                  <span className="mobile-text">Generate</span>
+                  <span className="laptop-text">Generate My Trip</span>
                 </>
               )}
             </button>
@@ -800,6 +819,32 @@ function CreateTrip() {
             0% { left: -100%; }
             20% { left: 100%; }
             100% { left: 100%; }
+          }
+          
+          /* Responsive button text - Show different text on mobile vs laptop */
+          .mobile-text {
+            display: inline;
+          }
+          
+          .laptop-text {
+            display: none;
+          }
+          
+          @media (min-width: 768px) {
+            .mobile-text {
+              display: none;
+            }
+            
+            .laptop-text {
+              display: inline;
+            }
+          }
+          
+          /* Mobile responsive adjustments */
+          @media (max-width: 480px) {
+            button {
+              gap: 4px !important;
+            }
           }
         `}
       </style>

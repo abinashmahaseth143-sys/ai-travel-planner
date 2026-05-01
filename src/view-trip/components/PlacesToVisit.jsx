@@ -43,6 +43,81 @@ function PlacesToVisit({ trip }) {
     window.open(`https://www.google.com/maps/search/?api=1&query=${searchQuery}`, '_blank');
   };
 
+  // Function to get accurate price display
+  const getPriceDisplay = (place) => {
+    const priceLevel = place.priceLevel;
+    
+    // If price level exists, map it properly
+    if (priceLevel) {
+      switch(priceLevel) {
+        case 'PRICE_LEVEL_FREE':
+          return 'Free';
+        case 'PRICE_LEVEL_INEXPENSIVE':
+          return '$5-$15';
+        case 'PRICE_LEVEL_MODERATE':
+          return '$15-$30';
+        case 'PRICE_LEVEL_EXPENSIVE':
+          return '$30-$50';
+        case 'PRICE_LEVEL_VERY_EXPENSIVE':
+          return '$50+';
+        default:
+          return 'Check website';
+      }
+    }
+    
+    // If no price data, infer from place types
+    const types = place.types || [];
+    const placeName = place.displayName?.text?.toLowerCase() || '';
+    
+    // Theme parks and entertainment
+    if (types.includes('amusement_park') || placeName.includes('theme park') || placeName.includes('peppa pig') || placeName.includes('paultons')) {
+      return '$40-$60';
+    }
+    
+    // Museums and cultural sites
+    if (types.includes('museum') || types.includes('art_gallery') || types.includes('cultural')) {
+      return '$10-$25';
+    }
+    
+    // National parks and nature
+    if (types.includes('national_park') || types.includes('park') || types.includes('garden') || types.includes('nature')) {
+      return 'Free-$10';
+    }
+    
+    // Landmarks and tourist attractions
+    if (types.includes('tourist_attraction') || types.includes('landmark') || placeName.includes('tower') || placeName.includes('stadium')) {
+      return '$15-$30';
+    }
+    
+    // Restaurants and bars
+    if (types.includes('restaurant') || types.includes('bar') || types.includes('cafe')) {
+      return '$$';
+    }
+    
+    // Shopping
+    if (types.includes('shopping_mall') || types.includes('store')) {
+      return 'Varies';
+    }
+    
+    // Cinemas
+    if (types.includes('movie_theater') || types.includes('cinema')) {
+      return '$12-$20';
+    }
+    
+    // Zoos and aquariums
+    if (types.includes('zoo') || types.includes('aquarium')) {
+      return '$20-$35';
+    }
+    
+    // Beaches
+    if (types.includes('beach')) {
+      return 'Free';
+    }
+    
+    // Default fallback
+    return 'Check website';
+  };
+
   useEffect(() => {
     const fetchAllAttractions = async () => {
       const destination = getDestination();
@@ -100,7 +175,7 @@ function PlacesToVisit({ trip }) {
         }
       }
       
-      // Format attractions
+      // Format attractions with improved price display
       const formattedAttractions = uniqueResults.map((place, index) => {
         const photoName = place.photos?.[0]?.name;
         
@@ -114,9 +189,7 @@ function PlacesToVisit({ trip }) {
           time: `${Math.floor(Math.random() * 12) + 8}:00 AM - ${Math.floor(Math.random() * 6) + 1}:00 PM`,
           timeToTravel: `${Math.floor(Math.random() * 45) + 15} minutes`,
           description: place.editorialSummary?.text || place.displayName?.text || "Popular attraction",
-          ticketPricing: place.priceLevel === "PRICE_LEVEL_EXPENSIVE" ? "$30-$50" : 
-                         place.priceLevel === "PRICE_LEVEL_MODERATE" ? "$15-$30" : 
-                         place.priceLevel === "PRICE_LEVEL_INEXPENSIVE" ? "$5-$15" : "Free",
+          ticketPricing: getPriceDisplay(place),
           rating: place.rating?.toFixed(1) || "4.5",
           reviewCount: place.userRatingCount || 0,
           placeImageUrl: photoName ? GetAttractionPhoto(photoName, 400, 300) : "/placeholder.jpg"
@@ -195,47 +268,70 @@ function PlacesToVisit({ trip }) {
         🗺️ Places to Visit in {destinationName} ({numberOfDays} Day{numberOfDays > 1 ? 's' : ''})
       </h2>
       
-      {/* Category Filter Buttons */}
+      {/* HORIZONTALLY SCROLLABLE CATEGORY FILTER BUTTONS */}
       <div style={{ 
-        display: 'flex', 
-        flexWrap: 'wrap', 
-        gap: '10px', 
-        marginBottom: '24px',
-        paddingBottom: '16px',
-        borderBottom: '1px solid #e5e7eb'
+        overflowX: 'auto',
+        overflowY: 'visible',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'thin',
+        marginBottom: '16px',
+        cursor: 'grab'
       }}>
-        {categories.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              backgroundColor: selectedCategory === cat.id ? '#3b82f6' : '#f3f4f6',
-              color: selectedCategory === cat.id ? 'white' : '#374151',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: selectedCategory === cat.id ? 'bold' : 'normal',
-              transition: 'all 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <span>{cat.icon}</span>
-            <span>{cat.name}</span>
-            <span style={{ 
-              fontSize: '12px',
-              backgroundColor: selectedCategory === cat.id ? 'rgba(255,255,255,0.2)' : '#e5e7eb',
-              padding: '2px 6px',
-              borderRadius: '12px',
-              marginLeft: '4px'
-            }}>
-              {getCategoryCount(cat.id)}
-            </span>
-          </button>
-        ))}
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          gap: '8px',
+          minWidth: 'min-content'
+        }}>
+          {categories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                backgroundColor: selectedCategory === cat.id ? '#3b82f6' : '#f3f4f6',
+                color: selectedCategory === cat.id ? 'white' : '#374151',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: selectedCategory === cat.id ? 'bold' : 'normal',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0
+              }}
+            >
+              <span>{cat.icon}</span>
+              <span>{cat.name}</span>
+              <span style={{ 
+                fontSize: '11px',
+                backgroundColor: selectedCategory === cat.id ? 'rgba(255,255,255,0.2)' : '#e5e7eb',
+                padding: '2px 5px',
+                borderRadius: '12px',
+                marginLeft: '2px'
+              }}>
+                {getCategoryCount(cat.id)}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      {/* Scroll indicator for mobile */}
+      <div style={{
+        textAlign: 'center',
+        fontSize: '10px',
+        color: '#9ca3af',
+        marginBottom: '20px',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '6px'
+      }}>
+        <span>⬅️</span> Scroll for more categories <span>➡️</span>
       </div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

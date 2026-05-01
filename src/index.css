@@ -1,380 +1,59 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* ============================================
-   RESPONSIVE DESIGN - ALL DEVICES
+   FORCE HORIZONTAL SCROLL FOR COUNTRY LIST
    ============================================ */
 
-/* Base responsive settings */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* Target the container that holds all country cards (likely a ul or div) */
+ul:has(li),
+.country-list,
+.destination-list,
+[class*="country"]:has(li) {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  gap: 20px !important;
+  padding: 20px 16px !important;
+  list-style: none !important;
+  margin: 0 !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
-html {
-  font-size: 16px;
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
+/* Target each country item (li) */
+li:has(.country-card),
+.country-item,
+[class*="country-card"],
+li:has(img) {
+  flex: 0 0 auto !important;
+  min-width: 200px !important;
+  width: 200px !important;
+  list-style: none !important;
+  display: block !important;
 }
 
-/* Mobile First Approach - Default styles for mobile */
-body {
-  overflow-x: hidden;
-  width: 100%;
-  position: relative;
+/* Target any parent section containing these cards */
+section:has(h2:contains("Best Countries")),
+div:has(h2:contains("Best Countries")) {
+  overflow-x: auto !important;
 }
 
-/* ============================================
-   RESPONSIVE GRID SYSTEMS
-   ============================================ */
-
-/* Countries Grid - For Weather Advisor Cards */
-.countries-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  padding: 16px;
-}
-
-@media (max-width: 640px) {
-  .countries-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 12px;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-  .countries-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-}
-
-/* Hotels Grid */
-.hotels-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-@media (max-width: 768px) {
-  .hotels-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
-/* Places to Visit Grid */
-.places-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-@media (max-width: 640px) {
-  .places-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-}
-
-/* My Trips Grid */
-.trips-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-}
-
-@media (max-width: 768px) {
-  .trips-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
-/* ============================================
-   BUTTONS - TOUCH FRIENDLY
-   ============================================ */
-button {
-  min-height: 44px;
-  min-width: 44px;
-  cursor: pointer;
-}
-
-.action-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-}
-
-@media (max-width: 640px) {
-  .action-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-  .action-buttons button {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* ============================================
-   HEADER - RESPONSIVE
-   ============================================ */
-.responsive-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  flex-wrap: wrap;
-}
-
-@media (max-width: 640px) {
-  .responsive-header {
-    flex-direction: column;
-    gap: 12px;
-  }
-  .responsive-header .header-buttons {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .responsive-header .header-buttons button {
-    flex: 1;
-    text-align: center;
-    justify-content: center;
-  }
-}
-
-/* ============================================
-   FORM INPUTS - RESPONSIVE
-   ============================================ */
-input, select, textarea {
-  font-size: 16px !important;
-}
-
-/* ============================================
-   PLACE CARDS - RESPONSIVE
-   ============================================ */
-.place-card {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  padding: 12px;
-}
-
-.place-card img {
-  width: 80px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 12px;
-}
-
-@media (max-width: 480px) {
-  .place-card {
-    flex-direction: column;
-  }
-  .place-card img {
-    width: 100%;
-    height: 160px;
-  }
-}
-
-/* ============================================
-   TRIP CARDS - RESPONSIVE
-   ============================================ */
-.trip-card {
-  width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.trip-card img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-}
-
-.trip-card-content {
-  padding: 16px;
-}
-
-@media (max-width: 480px) {
-  .trip-card img {
-    height: 140px;
-  }
-  .trip-card-content {
-    padding: 12px;
-  }
-}
-
-/* ============================================
-   BUDGET & TRAVELER OPTIONS
-   ============================================ */
-.options-grid {
-  display: grid;
-  gap: 16px;
-}
-
-.budget-grid {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-}
-
-.traveler-grid {
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-}
-
-@media (max-width: 640px) {
-  .budget-grid,
-  .traveler-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ============================================
-   CONTAINER - MAX WIDTH
-   ============================================ */
-.app-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 16px;
-}
-
-@media (max-width: 768px) {
-  .app-container {
-    padding: 0 12px;
-  }
-}
-
-/* ============================================
-   UTILITY CLASSES
-   ============================================ */
-.text-center { text-align: center; }
-.w-100 { width: 100%; }
-
-.hide-on-mobile {
-  display: inline;
-}
-
-.show-on-mobile {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .hide-on-mobile {
-    display: none;
-  }
-  .show-on-mobile {
-    display: inline;
-  }
-}
-
-/* ============================================
-   SCROLLBAR
-   ============================================ */
+/* Style the scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
+  background: #e2e8f0;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #667eea;
-  border-radius: 3px;
+  border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #764ba2;
-}
-
-/* ============================================
-   ANIMATIONS
-   ============================================ */
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-#root {
-  width: 100%;
-  min-height: 100vh;
+/* Keep page fixed */
+body {
+  overflow-x: hidden !important;
 }

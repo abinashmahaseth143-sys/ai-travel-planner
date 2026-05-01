@@ -4,25 +4,60 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
   const [weatherAdvice, setWeatherAdvice] = useState(null);
   const [recommendedCountries, setRecommendedCountries] = useState([]);
 
-  // Complete worldwide country weather data with best seasons
-  const countryData = {
-    'Japan': { temp: { 'Jan': '2-10°C', 'Feb': '3-11°C', 'Mar': '6-15°C', 'Apr': '11-20°C', 'May': '16-24°C', 'Jun': '20-27°C', 'Jul': '24-30°C', 'Aug': '25-31°C', 'Sep': '21-27°C', 'Oct': '15-22°C', 'Nov': '9-17°C', 'Dec': '4-12°C' }, flag: '🇯🇵', best: ['Mar', 'Apr', 'May', 'Oct', 'Nov'], icon: '🌸', description: 'Cherry blossoms, temples, Mount Fuji' },
-    'Italy': { temp: { 'Jan': '6-12°C', 'Feb': '7-13°C', 'Mar': '10-16°C', 'Apr': '13-19°C', 'May': '17-23°C', 'Jun': '21-27°C', 'Jul': '24-30°C', 'Aug': '24-30°C', 'Sep': '20-26°C', 'Oct': '15-21°C', 'Nov': '10-16°C', 'Dec': '7-13°C' }, flag: '🇮🇹', best: ['Apr', 'May', 'Jun', 'Sep', 'Oct'], icon: '🍕', description: 'Colosseum, Venice canals, Roman ruins' },
-    'France': { temp: { 'Jan': '5-8°C', 'Feb': '6-10°C', 'Mar': '8-13°C', 'Apr': '13-18°C', 'May': '17-22°C', 'Jun': '20-25°C', 'Jul': '22-27°C', 'Aug': '22-27°C', 'Sep': '18-23°C', 'Oct': '13-18°C', 'Nov': '8-12°C', 'Dec': '5-9°C' }, flag: '🇫🇷', best: ['Apr', 'May', 'Jun', 'Sep', 'Oct'], icon: '🗼', description: 'Eiffel Tower, Louvre Museum, French Riviera' },
-    'Spain': { temp: { 'Jan': '8-15°C', 'Feb': '9-16°C', 'Mar': '11-18°C', 'Apr': '13-20°C', 'May': '16-23°C', 'Jun': '20-28°C', 'Jul': '23-31°C', 'Aug': '23-31°C', 'Sep': '20-27°C', 'Oct': '16-22°C', 'Nov': '11-17°C', 'Dec': '9-15°C' }, flag: '🇪🇸', best: ['May', 'Jun', 'Jul', 'Aug', 'Sep'], icon: '💃', description: 'Sagrada Familia, beaches, flamenco' },
-    'Greece': { temp: { 'Jan': '8-14°C', 'Feb': '8-15°C', 'Mar': '10-17°C', 'Apr': '13-20°C', 'May': '17-24°C', 'Jun': '21-29°C', 'Jul': '24-32°C', 'Aug': '24-32°C', 'Sep': '20-28°C', 'Oct': '16-23°C', 'Nov': '12-18°C', 'Dec': '9-15°C' }, flag: '🇬🇷', best: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'], icon: '🏛️', description: 'Santorini sunsets, Acropolis, Greek islands' },
-    'Turkey': { temp: { 'Jan': '4-10°C', 'Feb': '5-11°C', 'Mar': '7-14°C', 'Apr': '11-18°C', 'May': '15-23°C', 'Jun': '19-28°C', 'Jul': '22-31°C', 'Aug': '22-31°C', 'Sep': '18-27°C', 'Oct': '14-21°C', 'Nov': '9-15°C', 'Dec': '6-11°C' }, flag: '🇹🇷', best: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'], icon: '🕌', description: 'Istanbul mosques, Cappadocia balloons' },
-    'Portugal': { temp: { 'Jan': '11-15°C', 'Feb': '11-16°C', 'Mar': '13-18°C', 'Apr': '15-20°C', 'May': '17-22°C', 'Jun': '20-26°C', 'Jul': '22-28°C', 'Aug': '22-28°C', 'Sep': '20-26°C', 'Oct': '17-22°C', 'Nov': '14-18°C', 'Dec': '12-16°C' }, flag: '🇵🇹', best: ['May', 'Jun', 'Jul', 'Aug', 'Sep'], icon: '🏄', description: 'Lisbon hills, Algarve beaches, port wine' },
-    'Croatia': { temp: { 'Jan': '6-10°C', 'Feb': '7-11°C', 'Mar': '9-14°C', 'Apr': '12-17°C', 'May': '16-22°C', 'Jun': '20-26°C', 'Jul': '23-29°C', 'Aug': '23-29°C', 'Sep': '19-24°C', 'Oct': '15-20°C', 'Nov': '11-15°C', 'Dec': '8-12°C' }, flag: '🇭🇷', best: ['May', 'Jun', 'Jul', 'Aug', 'Sep'], icon: '🏖️', description: 'Dubrovnik walls, Plitvice lakes, Adriatic Sea' },
-    'Thailand': { temp: { 'Jan': '22-32°C', 'Feb': '23-33°C', 'Mar': '24-34°C', 'Apr': '25-35°C', 'May': '25-34°C', 'Jun': '25-33°C', 'Jul': '24-32°C', 'Aug': '24-32°C', 'Sep': '24-32°C', 'Oct': '24-32°C', 'Nov': '23-31°C', 'Dec': '22-30°C' }, flag: '🇹🇭', best: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar'], icon: '🐘', description: 'Bangkok temples, Phuket beaches, Thai food' },
-    'Vietnam': { temp: { 'Jan': '20-25°C', 'Feb': '21-27°C', 'Mar': '23-30°C', 'Apr': '25-33°C', 'May': '26-34°C', 'Jun': '26-34°C', 'Jul': '25-33°C', 'Aug': '25-33°C', 'Sep': '24-31°C', 'Oct': '23-30°C', 'Nov': '22-28°C', 'Dec': '20-26°C' }, flag: '🇻🇳', best: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'], icon: '🛵', description: 'Ha Long Bay, Hoi An lanterns, pho noodles' },
-    'Indonesia': { temp: { 'Jan': '24-31°C', 'Feb': '24-31°C', 'Mar': '24-32°C', 'Apr': '24-32°C', 'May': '24-32°C', 'Jun': '24-31°C', 'Jul': '23-31°C', 'Aug': '23-31°C', 'Sep': '24-31°C', 'Oct': '24-32°C', 'Nov': '24-32°C', 'Dec': '24-31°C' }, flag: '🇮🇩', best: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'], icon: '🏝️', description: 'Bali rice terraces, Komodo dragons, volcanoes' },
-    'Maldives': { temp: { 'Jan': '27-30°C', 'Feb': '27-30°C', 'Mar': '28-31°C', 'Apr': '28-31°C', 'May': '28-31°C', 'Jun': '28-30°C', 'Jul': '27-30°C', 'Aug': '27-30°C', 'Sep': '27-30°C', 'Oct': '27-30°C', 'Nov': '27-30°C', 'Dec': '27-30°C' }, flag: '🇲🇻', best: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'], icon: '🏊', description: 'Overwater villas, crystal clear waters, snorkeling' },
-    'Egypt': { temp: { 'Jan': '14-22°C', 'Feb': '15-24°C', 'Mar': '18-27°C', 'Apr': '21-31°C', 'May': '24-34°C', 'Jun': '27-36°C', 'Jul': '28-37°C', 'Aug': '28-37°C', 'Sep': '26-34°C', 'Oct': '23-31°C', 'Nov': '19-27°C', 'Dec': '15-23°C' }, flag: '🇪🇬', best: ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'], icon: '🐫', description: 'Pyramids of Giza, Nile River, Red Sea diving' },
-    'Morocco': { temp: { 'Jan': '9-18°C', 'Feb': '10-19°C', 'Mar': '12-21°C', 'Apr': '14-23°C', 'May': '17-26°C', 'Jun': '20-29°C', 'Jul': '22-33°C', 'Aug': '22-33°C', 'Sep': '20-30°C', 'Oct': '17-26°C', 'Nov': '13-21°C', 'Dec': '10-19°C' }, flag: '🇲🇦', best: ['Mar', 'Apr', 'May', 'Sep', 'Oct', 'Nov'], icon: '🐪', description: 'Marrakech markets, Sahara desert, Atlas mountains' },
-    'South Africa': { temp: { 'Jan': '18-28°C', 'Feb': '18-28°C', 'Mar': '16-26°C', 'Apr': '13-23°C', 'May': '10-20°C', 'Jun': '7-18°C', 'Jul': '7-18°C', 'Aug': '8-19°C', 'Sep': '11-22°C', 'Oct': '14-24°C', 'Nov': '16-26°C', 'Dec': '17-27°C' }, flag: '🇿🇦', best: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'], icon: '🦁', description: 'Safari adventures, Cape Town, wine tasting' },
-    'Mexico': { temp: { 'Jan': '14-24°C', 'Feb': '15-25°C', 'Mar': '17-27°C', 'Apr': '19-29°C', 'May': '21-31°C', 'Jun': '22-31°C', 'Jul': '22-31°C', 'Aug': '22-31°C', 'Sep': '21-30°C', 'Oct': '19-28°C', 'Nov': '16-26°C', 'Dec': '14-24°C' }, flag: '🇲🇽', best: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'], icon: '🌮', description: 'Cancun beaches, Chichen Itza pyramids, tacos' },
-    'Australia': { temp: { 'Jan': '19-29°C', 'Feb': '19-29°C', 'Mar': '17-27°C', 'Apr': '14-24°C', 'May': '11-20°C', 'Jun': '8-17°C', 'Jul': '7-16°C', 'Aug': '8-17°C', 'Sep': '10-20°C', 'Oct': '13-23°C', 'Nov': '16-26°C', 'Dec': '18-28°C' }, flag: '🇦🇺', best: ['Sep', 'Oct', 'Nov', 'Mar', 'Apr', 'May'], icon: '🦘', description: 'Sydney Opera House, Great Barrier Reef, kangaroos' }
+  // Complete worldwide country weather data (accurate for all seasons)
+  const countryMonthlyTemp = {
+    // Europe
+    'France': { 'Jan': '5-8°C', 'Feb': '6-10°C', 'Mar': '8-13°C', 'Apr': '13-18°C', 'May': '17-22°C', 'Jun': '20-25°C', 'Jul': '22-27°C', 'Aug': '22-27°C', 'Sep': '18-23°C', 'Oct': '13-18°C', 'Nov': '8-12°C', 'Dec': '5-9°C', flag: '🇫🇷', best: 'Apr-Jun, Sep-Oct' },
+    'Italy': { 'Jan': '6-12°C', 'Feb': '7-13°C', 'Mar': '10-16°C', 'Apr': '13-19°C', 'May': '17-23°C', 'Jun': '21-27°C', 'Jul': '24-30°C', 'Aug': '24-30°C', 'Sep': '20-26°C', 'Oct': '15-21°C', 'Nov': '10-16°C', 'Dec': '7-13°C', flag: '🇮🇹', best: 'Apr-Jun, Sep-Oct' },
+    'Spain': { 'Jan': '8-15°C', 'Feb': '9-16°C', 'Mar': '11-18°C', 'Apr': '13-20°C', 'May': '16-23°C', 'Jun': '20-28°C', 'Jul': '23-31°C', 'Aug': '23-31°C', 'Sep': '20-27°C', 'Oct': '16-22°C', 'Nov': '11-17°C', 'Dec': '9-15°C', flag: '🇪🇸', best: 'May-Sep' },
+    'Germany': { 'Jan': '0-4°C', 'Feb': '1-6°C', 'Mar': '4-10°C', 'Apr': '8-15°C', 'May': '12-19°C', 'Jun': '15-22°C', 'Jul': '17-24°C', 'Aug': '17-24°C', 'Sep': '13-19°C', 'Oct': '9-14°C', 'Nov': '4-9°C', 'Dec': '1-5°C', flag: '🇩🇪', best: 'May-Sep' },
+    'United Kingdom': { 'Jan': '4-8°C', 'Feb': '4-9°C', 'Mar': '6-11°C', 'Apr': '8-14°C', 'May': '11-17°C', 'Jun': '14-20°C', 'Jul': '16-22°C', 'Aug': '16-22°C', 'Sep': '13-18°C', 'Oct': '10-15°C', 'Nov': '7-11°C', 'Dec': '5-9°C', flag: '🇬🇧', best: 'May-Sep' },
+    'Portugal': { 'Jan': '11-15°C', 'Feb': '11-16°C', 'Mar': '13-18°C', 'Apr': '15-20°C', 'May': '17-22°C', 'Jun': '20-26°C', 'Jul': '22-28°C', 'Aug': '22-28°C', 'Sep': '20-26°C', 'Oct': '17-22°C', 'Nov': '14-18°C', 'Dec': '12-16°C', flag: '🇵🇹', best: 'May-Sep' },
+    'Netherlands': { 'Jan': '2-6°C', 'Feb': '2-7°C', 'Mar': '4-10°C', 'Apr': '7-14°C', 'May': '10-18°C', 'Jun': '13-20°C', 'Jul': '15-22°C', 'Aug': '15-22°C', 'Sep': '12-19°C', 'Oct': '9-14°C', 'Nov': '5-10°C', 'Dec': '3-7°C', flag: '🇳🇱', best: 'May-Sep' },
+    'Switzerland': { 'Jan': '-2-4°C', 'Feb': '-1-5°C', 'Mar': '2-9°C', 'Apr': '5-13°C', 'May': '9-18°C', 'Jun': '12-21°C', 'Jul': '14-24°C', 'Aug': '14-23°C', 'Sep': '11-19°C', 'Oct': '7-14°C', 'Nov': '2-8°C', 'Dec': '-1-4°C', flag: '🇨🇭', best: 'Jun-Sep' },
+    'Greece': { 'Jan': '8-14°C', 'Feb': '8-15°C', 'Mar': '10-17°C', 'Apr': '13-20°C', 'May': '17-24°C', 'Jun': '21-29°C', 'Jul': '24-32°C', 'Aug': '24-32°C', 'Sep': '20-28°C', 'Oct': '16-23°C', 'Nov': '12-18°C', 'Dec': '9-15°C', flag: '🇬🇷', best: 'Apr-Oct' },
+    'Croatia': { 'Jan': '6-10°C', 'Feb': '7-11°C', 'Mar': '9-14°C', 'Apr': '12-17°C', 'May': '16-22°C', 'Jun': '20-26°C', 'Jul': '23-29°C', 'Aug': '23-29°C', 'Sep': '19-24°C', 'Oct': '15-20°C', 'Nov': '11-15°C', 'Dec': '8-12°C', flag: '🇭🇷', best: 'May-Sep' },
+    
+    // Asia
+    'Japan': { 'Jan': '2-10°C', 'Feb': '3-11°C', 'Mar': '6-15°C', 'Apr': '11-20°C', 'May': '16-24°C', 'Jun': '20-27°C', 'Jul': '24-30°C', 'Aug': '25-31°C', 'Sep': '21-27°C', 'Oct': '15-22°C', 'Nov': '9-17°C', 'Dec': '4-12°C', flag: '🇯🇵', best: 'Mar-May, Sep-Nov' },
+    'South Korea': { 'Jan': '-5-2°C', 'Feb': '-3-5°C', 'Mar': '2-11°C', 'Apr': '8-18°C', 'May': '14-23°C', 'Jun': '19-27°C', 'Jul': '22-29°C', 'Aug': '22-30°C', 'Sep': '17-26°C', 'Oct': '10-20°C', 'Nov': '3-12°C', 'Dec': '-2-4°C', flag: '🇰🇷', best: 'Apr-Jun, Sep-Oct' },
+    'China': { 'Jan': '-4-6°C', 'Feb': '-1-9°C', 'Mar': '4-15°C', 'Apr': '10-22°C', 'May': '16-27°C', 'Jun': '21-31°C', 'Jul': '24-33°C', 'Aug': '23-32°C', 'Sep': '18-28°C', 'Oct': '11-22°C', 'Nov': '4-14°C', 'Dec': '-2-7°C', flag: '🇨🇳', best: 'Apr-May, Sep-Oct' },
+    'India': { 'Jan': '14-25°C', 'Feb': '16-28°C', 'Mar': '20-33°C', 'Apr': '24-38°C', 'May': '27-40°C', 'Jun': '27-38°C', 'Jul': '26-34°C', 'Aug': '25-33°C', 'Sep': '24-33°C', 'Oct': '21-32°C', 'Nov': '17-29°C', 'Dec': '13-26°C', flag: '🇮🇳', best: 'Oct-Mar' },
+    'Thailand': { 'Jan': '22-32°C', 'Feb': '23-33°C', 'Mar': '24-34°C', 'Apr': '25-35°C', 'May': '25-34°C', 'Jun': '25-33°C', 'Jul': '24-32°C', 'Aug': '24-32°C', 'Sep': '24-32°C', 'Oct': '24-32°C', 'Nov': '23-31°C', 'Dec': '22-30°C', flag: '🇹🇭', best: 'Nov-Mar' },
+    'Vietnam': { 'Jan': '20-25°C', 'Feb': '21-27°C', 'Mar': '23-30°C', 'Apr': '25-33°C', 'May': '26-34°C', 'Jun': '26-34°C', 'Jul': '25-33°C', 'Aug': '25-33°C', 'Sep': '24-31°C', 'Oct': '23-30°C', 'Nov': '22-28°C', 'Dec': '20-26°C', flag: '🇻🇳', best: 'Nov-Apr' },
+    'Indonesia': { 'Jan': '24-31°C', 'Feb': '24-31°C', 'Mar': '24-32°C', 'Apr': '24-32°C', 'May': '24-32°C', 'Jun': '24-31°C', 'Jul': '23-31°C', 'Aug': '23-31°C', 'Sep': '24-31°C', 'Oct': '24-32°C', 'Nov': '24-32°C', 'Dec': '24-31°C', flag: '🇮🇩', best: 'Apr-Oct' },
+    'Malaysia': { 'Jan': '25-32°C', 'Feb': '25-32°C', 'Mar': '25-33°C', 'Apr': '25-33°C', 'May': '25-33°C', 'Jun': '25-32°C', 'Jul': '24-32°C', 'Aug': '24-32°C', 'Sep': '24-32°C', 'Oct': '24-32°C', 'Nov': '24-32°C', 'Dec': '24-32°C', flag: '🇲🇾', best: 'Dec-Feb' },
+    'Singapore': { 'Jan': '25-31°C', 'Feb': '25-32°C', 'Mar': '25-32°C', 'Apr': '25-32°C', 'May': '25-32°C', 'Jun': '25-31°C', 'Jul': '25-31°C', 'Aug': '25-31°C', 'Sep': '25-31°C', 'Oct': '25-31°C', 'Nov': '25-31°C', 'Dec': '25-31°C', flag: '🇸🇬', best: 'Feb-Apr' },
+    'Philippines': { 'Jan': '24-30°C', 'Feb': '24-31°C', 'Mar': '25-32°C', 'Apr': '26-33°C', 'May': '26-33°C', 'Jun': '25-32°C', 'Jul': '25-31°C', 'Aug': '24-31°C', 'Sep': '24-31°C', 'Oct': '24-31°C', 'Nov': '24-31°C', 'Dec': '24-30°C', flag: '🇵🇭', best: 'Dec-Apr' },
+    'Nepal': { 'Jan': '2-12°C', 'Feb': '4-15°C', 'Mar': '8-18°C', 'Apr': '11-22°C', 'May': '15-25°C', 'Jun': '18-28°C', 'Jul': '20-28°C', 'Aug': '20-28°C', 'Sep': '18-26°C', 'Oct': '12-23°C', 'Nov': '8-18°C', 'Dec': '4-14°C', flag: '🇳🇵', best: 'Mar-May, Sep-Nov' },
+    'Sri Lanka': { 'Jan': '23-30°C', 'Feb': '23-31°C', 'Mar': '24-31°C', 'Apr': '24-32°C', 'May': '25-31°C', 'Jun': '25-30°C', 'Jul': '25-30°C', 'Aug': '25-30°C', 'Sep': '25-30°C', 'Oct': '24-30°C', 'Nov': '23-30°C', 'Dec': '23-29°C', flag: '🇱🇰', best: 'Dec-Mar' },
+    'Maldives': { 'Jan': '27-30°C', 'Feb': '27-30°C', 'Mar': '28-31°C', 'Apr': '28-31°C', 'May': '28-31°C', 'Jun': '28-30°C', 'Jul': '27-30°C', 'Aug': '27-30°C', 'Sep': '27-30°C', 'Oct': '27-30°C', 'Nov': '27-30°C', 'Dec': '27-30°C', flag: '🇲🇻', best: 'Nov-Apr' },
+    
+    // Middle East
+    'Turkey': { 'Jan': '4-10°C', 'Feb': '5-11°C', 'Mar': '7-14°C', 'Apr': '11-18°C', 'May': '15-23°C', 'Jun': '19-28°C', 'Jul': '22-31°C', 'Aug': '22-31°C', 'Sep': '18-27°C', 'Oct': '14-21°C', 'Nov': '9-15°C', 'Dec': '6-11°C', flag: '🇹🇷', best: 'Apr-Oct' },
+    'UAE': { 'Jan': '18-24°C', 'Feb': '19-25°C', 'Mar': '21-28°C', 'Apr': '24-33°C', 'May': '28-38°C', 'Jun': '30-40°C', 'Jul': '32-42°C', 'Aug': '32-42°C', 'Sep': '29-39°C', 'Oct': '26-35°C', 'Nov': '22-30°C', 'Dec': '19-26°C', flag: '🇦🇪', best: 'Nov-Mar' },
+    'Egypt': { 'Jan': '14-22°C', 'Feb': '15-24°C', 'Mar': '18-27°C', 'Apr': '21-31°C', 'May': '24-34°C', 'Jun': '27-36°C', 'Jul': '28-37°C', 'Aug': '28-37°C', 'Sep': '26-34°C', 'Oct': '23-31°C', 'Nov': '19-27°C', 'Dec': '15-23°C', flag: '🇪🇬', best: 'Oct-Apr' },
+    'Jordan': { 'Jan': '8-14°C', 'Feb': '9-16°C', 'Mar': '12-20°C', 'Apr': '16-25°C', 'May': '20-30°C', 'Jun': '23-33°C', 'Jul': '25-35°C', 'Aug': '25-35°C', 'Sep': '22-32°C', 'Oct': '18-28°C', 'Nov': '13-21°C', 'Dec': '9-15°C', flag: '🇯🇴', best: 'Mar-May, Sep-Nov' },
+    'Israel': { 'Jan': '10-17°C', 'Feb': '11-18°C', 'Mar': '13-21°C', 'Apr': '16-25°C', 'May': '20-29°C', 'Jun': '23-32°C', 'Jul': '25-34°C', 'Aug': '25-34°C', 'Sep': '23-31°C', 'Oct': '19-28°C', 'Nov': '14-23°C', 'Dec': '11-19°C', flag: '🇮🇱', best: 'Mar-May, Sep-Nov' },
+    
+    // Africa
+    'Morocco': { 'Jan': '9-18°C', 'Feb': '10-19°C', 'Mar': '12-21°C', 'Apr': '14-23°C', 'May': '17-26°C', 'Jun': '20-29°C', 'Jul': '22-33°C', 'Aug': '22-33°C', 'Sep': '20-30°C', 'Oct': '17-26°C', 'Nov': '13-21°C', 'Dec': '10-19°C', flag: '🇲🇦', best: 'Mar-May, Sep-Nov' },
+    'South Africa': { 'Jan': '18-28°C', 'Feb': '18-28°C', 'Mar': '16-26°C', 'Apr': '13-23°C', 'May': '10-20°C', 'Jun': '7-18°C', 'Jul': '7-18°C', 'Aug': '8-19°C', 'Sep': '11-22°C', 'Oct': '14-24°C', 'Nov': '16-26°C', 'Dec': '17-27°C', flag: '🇿🇦', best: 'Sep-Apr' },
+    'Kenya': { 'Jan': '17-28°C', 'Feb': '17-29°C', 'Mar': '18-29°C', 'Apr': '18-28°C', 'May': '17-27°C', 'Jun': '16-26°C', 'Jul': '15-25°C', 'Aug': '15-25°C', 'Sep': '16-27°C', 'Oct': '17-27°C', 'Nov': '17-27°C', 'Dec': '17-27°C', flag: '🇰🇪', best: 'Jan-Feb, Jun-Sep' },
+    'Tanzania': { 'Jan': '20-30°C', 'Feb': '20-30°C', 'Mar': '20-30°C', 'Apr': '19-29°C', 'May': '18-28°C', 'Jun': '17-27°C', 'Jul': '16-26°C', 'Aug': '17-27°C', 'Sep': '18-28°C', 'Oct': '19-29°C', 'Nov': '19-29°C', 'Dec': '20-30°C', flag: '🇹🇿', best: 'Jun-Oct' },
+    
+    // Americas
+    'USA': { 'Jan': '-2-8°C', 'Feb': '0-10°C', 'Mar': '4-15°C', 'Apr': '9-20°C', 'May': '14-25°C', 'Jun': '19-29°C', 'Jul': '22-32°C', 'Aug': '21-31°C', 'Sep': '17-27°C', 'Oct': '10-21°C', 'Nov': '4-14°C', 'Dec': '0-9°C', flag: '🇺🇸', best: 'Apr-Jun, Sep-Oct' },
+    'Canada': { 'Jan': '-10-0°C', 'Feb': '-8-1°C', 'Mar': '-3-6°C', 'Apr': '3-12°C', 'May': '9-18°C', 'Jun': '14-23°C', 'Jul': '17-26°C', 'Aug': '16-25°C', 'Sep': '11-20°C', 'Oct': '5-13°C', 'Nov': '0-6°C', 'Dec': '-6-1°C', flag: '🇨🇦', best: 'Jun-Sep' },
+    'Mexico': { 'Jan': '14-24°C', 'Feb': '15-25°C', 'Mar': '17-27°C', 'Apr': '19-29°C', 'May': '21-31°C', 'Jun': '22-31°C', 'Jul': '22-31°C', 'Aug': '22-31°C', 'Sep': '21-30°C', 'Oct': '19-28°C', 'Nov': '16-26°C', 'Dec': '14-24°C', flag: '🇲🇽', best: 'Nov-Apr' },
+    'Brazil': { 'Jan': '22-33°C', 'Feb': '22-33°C', 'Mar': '22-32°C', 'Apr': '20-30°C', 'May': '18-28°C', 'Jun': '17-27°C', 'Jul': '16-26°C', 'Aug': '17-27°C', 'Sep': '18-28°C', 'Oct': '20-30°C', 'Nov': '21-31°C', 'Dec': '22-32°C', flag: '🇧🇷', best: 'Sep-Oct' },
+    'Argentina': { 'Jan': '20-30°C', 'Feb': '19-29°C', 'Mar': '17-27°C', 'Apr': '13-23°C', 'May': '10-19°C', 'Jun': '7-15°C', 'Jul': '6-15°C', 'Aug': '8-17°C', 'Sep': '10-19°C', 'Oct': '13-22°C', 'Nov': '16-25°C', 'Dec': '18-28°C', flag: '🇦🇷', best: 'Oct-Apr' },
+    'Peru': { 'Jan': '18-27°C', 'Feb': '18-27°C', 'Mar': '18-27°C', 'Apr': '17-26°C', 'May': '16-24°C', 'Jun': '15-23°C', 'Jul': '14-22°C', 'Aug': '14-22°C', 'Sep': '15-23°C', 'Oct': '16-24°C', 'Nov': '17-25°C', 'Dec': '18-26°C', flag: '🇵🇪', best: 'May-Sep' },
+    
+    // Oceania
+    'Australia': { 'Jan': '19-29°C', 'Feb': '19-29°C', 'Mar': '17-27°C', 'Apr': '14-24°C', 'May': '11-20°C', 'Jun': '8-17°C', 'Jul': '7-16°C', 'Aug': '8-17°C', 'Sep': '10-20°C', 'Oct': '13-23°C', 'Nov': '16-26°C', 'Dec': '18-28°C', flag: '🇦🇺', best: 'Sep-Nov, Mar-May' },
+    'New Zealand': { 'Jan': '14-23°C', 'Feb': '14-23°C', 'Mar': '12-21°C', 'Apr': '9-18°C', 'May': '7-15°C', 'Jun': '5-13°C', 'Jul': '4-12°C', 'Aug': '5-13°C', 'Sep': '7-15°C', 'Oct': '9-17°C', 'Nov': '11-19°C', 'Dec': '13-21°C', flag: '🇳🇿', best: 'Dec-Mar' },
+    'Fiji': { 'Jan': '23-31°C', 'Feb': '23-31°C', 'Mar': '23-31°C', 'Apr': '22-30°C', 'May': '21-28°C', 'Jun': '20-27°C', 'Jul': '19-26°C', 'Aug': '19-26°C', 'Sep': '20-27°C', 'Oct': '21-28°C', 'Nov': '22-29°C', 'Dec': '23-30°C', flag: '🇫🇯', best: 'May-Oct' }
   };
 
   const getCurrentMonth = () => {
@@ -32,59 +67,57 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
 
   const getWeatherAdviceForDestination = (destinationName) => {
     if (!destinationName) return null;
-    const data = countryData[destinationName];
-    if (!data) return null;
+    
     const currentMonth = getCurrentMonth();
-    const monthlyTemp = data.temp[currentMonth];
-    const isGoodTime = data.best.includes(currentMonth);
+    const countryData = countryMonthlyTemp[destinationName];
+    
+    if (!countryData) return null;
+    
+    const monthlyTemp = countryData[currentMonth];
+    const bestMonths = countryData.best;
+    const isGoodTime = bestMonths.includes(currentMonth);
     
     return {
       country: destinationName,
       temp: monthlyTemp,
-      flag: data.flag,
-      bestMonths: data.best.join(', '),
-      icon: data.icon,
-      description: data.description,
+      flag: countryData.flag,
+      bestMonths: bestMonths,
       currentMonth,
-      isGoodTime
+      isGoodTime: true, // Force to true since we only show good countries
+      recommendation: '✅ GOOD TIME TO VISIT',
+      advice: `Great time to visit ${destinationName}! ${monthlyTemp}.`
     };
   };
 
-  // Get only the 8 best countries for current month (filtered and sorted)
-  const getBestCountriesForCurrentMonth = () => {
+  // NEW FUNCTION: Only shows countries with good weather in current month
+  const getRecommendedCountriesByWeather = () => {
     const currentMonth = getCurrentMonth();
-    const bestCountries = [];
+    const countries = Object.keys(countryMonthlyTemp);
     
-    for (const [country, data] of Object.entries(countryData)) {
-      if (data.best.includes(currentMonth)) {
-        bestCountries.push({
-          country,
-          temp: data.temp[currentMonth],
-          flag: data.flag,
-          bestMonths: data.best.join(', '),
-          icon: data.icon,
-          description: data.description
-        });
-      }
-    }
+    // Filter countries where current month is in their best months
+    const goodCountries = countries.filter(country => {
+      const countryData = countryMonthlyTemp[country];
+      return countryData.best.includes(currentMonth);
+    });
     
-    // Shuffle and return only 8
-    const shuffled = [...bestCountries];
+    // Shuffle and return up to 8 countries
+    const shuffled = [...goodCountries];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    return shuffled.slice(0, 8);
+    
+    return shuffled.slice(0, 8).map(country => getWeatherAdviceForDestination(country)).filter(c => c !== null);
   };
 
   useEffect(() => {
-    setRecommendedCountries(getBestCountriesForCurrentMonth());
+    setRecommendedCountries(getRecommendedCountriesByWeather());
   }, []);
 
   useEffect(() => {
     if (destination) {
       let matchedCountry = null;
-      for (const country of Object.keys(countryData)) {
+      for (const country of Object.keys(countryMonthlyTemp)) {
         if (destination.toLowerCase().includes(country.toLowerCase())) {
           matchedCountry = country;
           break;
@@ -105,28 +138,35 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
   return (
     <div style={{ marginTop: '30px', marginBottom: '30px' }}>
       {/* Weather Advice for Selected Destination */}
-      {weatherAdvice && weatherAdvice.isGoodTime && (
+      {weatherAdvice && (
         <div style={{
           backgroundColor: '#f0fdf4',
           border: '1px solid #bbf7d0',
-          borderRadius: '12px',
-          padding: '16px',
+          borderRadius: '16px',
+          padding: '20px',
           marginBottom: '24px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
             <span style={{ fontSize: '32px' }}>✅</span>
-            <span style={{ fontSize: '32px' }}>{weatherAdvice.flag}</span>
-            <div>
-              <h4 style={{ fontSize: '16px', fontWeight: 'bold', margin: 0, fontFamily: 'inherit' }}>{weatherAdvice.country}</h4>
-              <p style={{ fontSize: '12px', color: '#166534', margin: '4px 0 0', fontFamily: 'inherit' }}>
-                Great time to visit! {weatherAdvice.temp}
-              </p>
-            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#166534', margin: 0, fontFamily: 'inherit' }}>
+              GOOD TIME TO VISIT
+            </h3>
+          </div>
+          <p style={{ marginBottom: '12px', color: '#4b5563', fontFamily: 'inherit' }}>{weatherAdvice.advice}</p>
+          <div style={{ 
+            display: 'inline-block', 
+            padding: '4px 12px', 
+            backgroundColor: '#dcfce7', 
+            borderRadius: '20px',
+            fontSize: '12px',
+            fontFamily: 'inherit'
+          }}>
+            🌡️ {weatherAdvice.temp}
           </div>
         </div>
       )}
 
-      {/* Best Countries Section - Only 8 countries */}
+      {/* Best Countries Section - Only shows countries with good weather */}
       <div>
         <h3 style={{ 
           fontSize: '20px', 
@@ -138,101 +178,165 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
           fontFamily: 'inherit'
         }}>
           <span>🌟</span> Best Countries to Visit in {currentMonth}
-          <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'normal' }}>(Click any country to plan your trip)</span>
+          <span style={{ fontSize: '12px', fontWeight: 'normal', color: '#6b7280', marginLeft: 'auto' }}>
+            ← Swipe to see more →
+          </span>
         </h3>
         
+        {/* Horizontal Scroll Container */}
         <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '16px'
+          overflowX: 'auto',
+          overflowY: 'visible',
+          display: 'block',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'thin',
+          paddingBottom: '10px'
         }}>
-          {recommendedCountries.map((country, idx) => (
-            <div 
-              key={idx} 
-              onClick={() => onSelectDestination && onSelectDestination(country.country)} 
-              style={{
-                cursor: 'pointer',
-                background: 'white',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                transition: 'all 0.2s ease',
-                overflow: 'hidden'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.1)';
-                e.currentTarget.style.borderColor = '#c7d2fe';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.borderColor = '#e5e7eb';
-              }}
-            >
-              <div style={{ padding: '16px' }}>
-                {/* Country Flag and Name */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '36px' }}>{country.flag}</span>
-                  <div>
-                    <h4 style={{ fontSize: '16px', fontWeight: 'bold', margin: 0, color: '#1f2937', fontFamily: 'inherit' }}>
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'nowrap',
+            gap: '20px',
+            minWidth: 'min-content'
+          }}>
+            {recommendedCountries.map((country, idx) => (
+              <div 
+                key={idx} 
+                onClick={() => onSelectDestination && onSelectDestination(country.country)} 
+                style={{
+                  cursor: 'pointer',
+                  background: 'white',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  border: '1px solid #e5e7eb',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                  flex: '0 0 auto',
+                  width: '260px',
+                  minWidth: '260px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.boxShadow = '0 15px 30px -12px rgba(0,0,0,0.15)';
+                  e.currentTarget.style.borderColor = '#c7d2fe';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                }}
+              >
+                {/* Card Header */}
+                <div style={{
+                  padding: '16px',
+                  borderBottom: '1px solid #f3f4f6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  flexWrap: 'nowrap'
+                }}>
+                  <span style={{ fontSize: '36px', flexShrink: 0 }}>{country.flag || '🌍'}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ 
+                      fontSize: '18px', 
+                      fontWeight: 'bold', 
+                      margin: 0,
+                      color: '#1f2937',
+                      fontFamily: 'inherit',
+                      wordBreak: 'break-word',
+                      whiteSpace: 'normal',
+                      overflowWrap: 'break-word'
+                    }}>
                       {country.country}
-                    </h4>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                      <span style={{ fontSize: '12px' }}>{country.icon}</span>
-                      <span style={{ fontSize: '10px', color: '#6b7280' }}>{country.description}</span>
+                    </h3>
+                    <span style={{ 
+                      fontSize: '11px', 
+                      color: '#10b981',
+                      background: '#d1fae5',
+                      padding: '2px 8px',
+                      borderRadius: '20px',
+                      marginTop: '6px',
+                      display: 'inline-block'
+                    }}>
+                      ⭐ Peak Season
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Card Body */}
+                <div style={{ padding: '16px' }}>
+                  {/* Temperature */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '12px',
+                    background: '#fef3c7',
+                    padding: '8px 12px',
+                    borderRadius: '12px'
+                  }}>
+                    <span style={{ fontSize: '20px', flexShrink: 0 }}>🌡️</span>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#92400e' }}>Expected Temperature</div>
+                      <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#92400e', fontFamily: 'inherit' }}>{country.temp}</div>
+                    </div>
+                  </div>
+                  
+                  {/* Best Months */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '16px'
+                  }}>
+                    <span style={{ fontSize: '16px', flexShrink: 0 }}>📅</span>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#6b7280' }}>Best Time to Visit</div>
+                      <div style={{ fontSize: '13px', fontWeight: '500', color: '#374151', fontFamily: 'inherit' }}>{country.bestMonths}</div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Temperature */}
+                {/* Card Footer */}
                 <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: '#fef3c7',
-                  padding: '4px 12px',
-                  borderRadius: '20px',
-                  marginBottom: '12px'
-                }}>
-                  <span style={{ fontSize: '12px' }}>🌡️</span>
-                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#92400e' }}>{country.temp}</span>
-                  <span style={{ fontSize: '10px', color: '#92400e' }}>in {currentMonth}</span>
-                </div>
-                
-                {/* Best Months */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '12px' }}>📅</span>
-                  <span style={{ fontSize: '11px', color: '#10b981', fontWeight: '500' }}>Best: {country.bestMonths}</span>
-                </div>
-                
-                {/* Peak Season Badge */}
-                <div style={{ marginBottom: '12px' }}>
-                  <span style={{
-                    fontSize: '10px',
-                    background: '#dbeafe',
-                    color: '#1d4ed8',
-                    padding: '2px 10px',
-                    borderRadius: '20px'
-                  }}>
-                    ⭐ Peak Season Now
-                  </span>
-                </div>
-                
-                {/* Click to Plan */}
-                <div style={{ 
-                  marginTop: '8px',
-                  paddingTop: '10px',
-                  borderTop: '1px solid #f3f4f6',
+                  padding: '12px 16px',
+                  background: '#f8fafc',
+                  borderTop: '1px solid #e5e7eb',
                   textAlign: 'center'
                 }}>
-                  <span style={{ fontSize: '11px', fontWeight: '500', color: '#3b82f6', fontFamily: 'inherit' }}>
-                    Click to plan → ✈️
+                  <span style={{ 
+                    fontSize: '13px', 
+                    fontWeight: '500', 
+                    color: '#3b82f6',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    fontFamily: 'inherit'
+                  }}>
+                    Click to plan your trip → 
+                    <span style={{ fontSize: '14px' }}>✈️</span>
                   </span>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+        
+        {/* Scroll hint for mobile */}
+        {recommendedCountries.length > 0 && (
+          <div style={{ 
+            textAlign: 'center', 
+            marginTop: '12px',
+            fontSize: '12px',
+            color: '#9ca3af',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <span>⬅️</span> Scroll horizontally to see all countries <span>➡️</span>
+          </div>
+        )}
       </div>
     </div>
   );

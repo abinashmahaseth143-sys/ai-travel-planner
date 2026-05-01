@@ -184,10 +184,10 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
           <span>🌟</span> Best Countries to Visit in {currentMonth}
         </h3>
         
-        {/* RESPONSIVE GRID - Updated for all devices */}
+        {/* RESPONSIVE GRID - Fixed for mobile display */}
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
           gap: '20px'
         }}>
           {recommendedCountries.map((country, idx) => (
@@ -214,33 +214,36 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
                 e.currentTarget.style.borderColor = '#e5e7eb';
               }}
             >
-              {/* Card Header with Flag and Country Name - Responsive */}
+              {/* Card Header - FIXED: Full country name always visible */}
               <div style={{
-                padding: 'clamp(12px, 4vw, 20px) clamp(12px, 4vw, 20px) 8px clamp(12px, 4vw, 20px)',
+                padding: '16px',
                 borderBottom: '1px solid #f3f4f6',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 'clamp(8px, 3vw, 12px)',
-                flexWrap: 'wrap'
+                gap: '12px',
+                flexWrap: 'nowrap'
               }}>
-                <span style={{ fontSize: 'clamp(28px, 8vw, 36px)' }}>{country.flag || '🌍'}</span>
-                <div>
+                <span style={{ fontSize: '36px', flexShrink: 0 }}>{country.flag || '🌍'}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <h3 style={{ 
-                    fontSize: 'clamp(16px, 4vw, 20px)', 
+                    fontSize: '18px', 
                     fontWeight: 'bold', 
                     margin: 0,
                     color: '#1f2937',
-                    fontFamily: 'inherit'
+                    fontFamily: 'inherit',
+                    wordBreak: 'break-word',
+                    whiteSpace: 'normal',
+                    overflowWrap: 'break-word'
                   }}>
                     {country.country}
                   </h3>
                   <span style={{ 
-                    fontSize: 'clamp(10px, 3vw, 11px)', 
+                    fontSize: '11px', 
                     color: '#10b981',
                     background: '#d1fae5',
                     padding: '2px 8px',
                     borderRadius: '20px',
-                    marginTop: '4px',
+                    marginTop: '6px',
                     display: 'inline-block'
                   }}>
                     {country.isGoodTime ? '⭐ Peak Season' : '🕐 Off Season'}
@@ -248,64 +251,59 @@ function WeatherCountryAdvisor({ destination, onSelectDestination }) {
                 </div>
               </div>
               
-              {/* Card Body - Responsive */}
-              <div style={{ 
-                padding: 'clamp(12px, 4vw, 16px) clamp(12px, 4vw, 20px)' 
-              }}>
-                {/* Temperature - Responsive */}
+              {/* Card Body */}
+              <div style={{ padding: '16px' }}>
+                {/* Temperature */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
                   marginBottom: '12px',
                   background: '#fef3c7',
-                  padding: 'clamp(6px, 2vw, 8px) clamp(8px, 3vw, 12px)',
-                  borderRadius: '12px',
-                  flexWrap: 'wrap'
+                  padding: '8px 12px',
+                  borderRadius: '12px'
                 }}>
-                  <span style={{ fontSize: 'clamp(16px, 5vw, 20px)' }}>🌡️</span>
+                  <span style={{ fontSize: '20px', flexShrink: 0 }}>🌡️</span>
                   <div>
-                    <div style={{ fontSize: 'clamp(10px, 3vw, 11px)', color: '#92400e' }}>Expected Temperature</div>
-                    <div style={{ fontSize: 'clamp(14px, 4vw, 18px)', fontWeight: 'bold', color: '#92400e', fontFamily: 'inherit' }}>{country.temp}</div>
+                    <div style={{ fontSize: '11px', color: '#92400e' }}>Expected Temperature</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#92400e', fontFamily: 'inherit' }}>{country.temp}</div>
                   </div>
                 </div>
                 
-                {/* Best Months - Responsive */}
+                {/* Best Months */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  marginBottom: '16px',
-                  flexWrap: 'wrap'
+                  marginBottom: '16px'
                 }}>
-                  <span style={{ fontSize: 'clamp(14px, 4vw, 16px)' }}>📅</span>
+                  <span style={{ fontSize: '16px', flexShrink: 0 }}>📅</span>
                   <div>
-                    <div style={{ fontSize: 'clamp(10px, 3vw, 11px)', color: '#6b7280' }}>Best Time to Visit</div>
-                    <div style={{ fontSize: 'clamp(11px, 3vw, 13px)', fontWeight: '500', color: '#374151', fontFamily: 'inherit' }}>{country.bestMonths}</div>
+                    <div style={{ fontSize: '11px', color: '#6b7280' }}>Best Time to Visit</div>
+                    <div style={{ fontSize: '13px', fontWeight: '500', color: '#374151', fontFamily: 'inherit' }}>{country.bestMonths}</div>
                   </div>
                 </div>
               </div>
               
-              {/* Card Footer - Responsive */}
+              {/* Card Footer */}
               <div style={{
-                padding: 'clamp(10px, 3vw, 12px) clamp(12px, 4vw, 20px)',
+                padding: '12px 16px',
                 background: '#f8fafc',
                 borderTop: '1px solid #e5e7eb',
                 textAlign: 'center'
               }}>
                 <span style={{ 
-                  fontSize: 'clamp(11px, 3vw, 13px)', 
+                  fontSize: '13px', 
                   fontWeight: '500', 
                   color: '#3b82f6',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
-                  fontFamily: 'inherit',
-                  flexWrap: 'wrap'
+                  fontFamily: 'inherit'
                 }}>
                   Click to plan your trip → 
-                  <span style={{ fontSize: 'clamp(12px, 4vw, 16px)' }}>✈️</span>
+                  <span style={{ fontSize: '14px' }}>✈️</span>
                 </span>
               </div>
             </div>

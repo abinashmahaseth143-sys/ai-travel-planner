@@ -1,10 +1,23 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 
 function PlaceCardItem({ place, onClick }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check screen size on mount and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   if (!place) return null;
 
   const placeName = place.placeName || place.name || "Attraction";
-  // STEP 3: Use the real image from Google Places API
   const placeImage = place.placeImageUrl || "/placeholder.jpg";
   const timeValue = place.time || place.startTime || "Flexible";
   const travelTime = place.timeToTravel || place.travelTime || place.timeTravel || "";
@@ -37,132 +50,181 @@ function PlaceCardItem({ place, onClick }) {
   return (
     <div 
       onClick={handleClick}
+      className="place-card"
       style={{ 
         display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row',
         gap: '16px',
-        padding: '12px',
+        padding: isMobile ? '12px' : '16px',
         backgroundColor: '#f9fafb',
-        borderRadius: '12px',
-        transition: 'transform 0.2s, boxShadow 0.2s',
+        borderRadius: '16px',
+        transition: 'all 0.3s ease',
         cursor: 'pointer',
-        border: '1px solid #e5e7eb'
+        border: '1px solid #e5e7eb',
+        width: '100%',
+        boxSizing: 'border-box'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateX(4px)';
+        e.currentTarget.style.backgroundColor = '#f3f4f6';
+        e.currentTarget.style.transform = isMobile ? 'translateY(-2px)' : 'translateX(4px)';
         e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
       }}
       onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = '#f9fafb';
         e.currentTarget.style.transform = 'translateX(0)';
         e.currentTarget.style.boxShadow = 'none';
       }}
     >
-      {/* STEP 3: Real Image from Google Places API */}
-      <img 
-        src={placeImage}
-        alt={placeName}
-        style={{ 
-          width: '100px', 
-          height: '130px', 
-          objectFit: 'cover',
+      {/* Place Image */}
+      <div 
+        className="place-card-image"
+        style={{
+          width: isMobile ? '100%' : '100px',
+          height: isMobile ? '180px' : '100px',
+          flexShrink: 0,
           borderRadius: '12px',
-          backgroundColor: '#f3f4f6'
+          overflow: 'hidden',
+          backgroundColor: '#e5e7eb'
         }}
-        onError={(e) => {
-          e.target.src = "/placeholder.jpg";
-        }}
-      />
+      >
+        <img 
+          src={placeImage}
+          alt={placeName}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover'
+          }}
+          onError={(e) => {
+            e.target.src = '/placeholder.jpg';
+          }}
+        />
+      </div>
       
       {/* Place Details */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        {/* Place Name */}
-        <h3 style={{ 
-          fontWeight: 'bold', 
-          fontSize: '16px',
-          color: '#f59e0b',
-          marginBottom: '6px'
-        }}>
-          {placeName}
-        </h3>
-        
-        {/* Address (if available) */}
-        {address && (
-          <div style={{ 
-            fontSize: '12px', 
-            color: '#6b7280',
+      <div 
+        className="place-card-content"
+        style={{ 
+          flex: 1, 
+          minWidth: 0,
+          width: '100%'
+        }}
+      >
+        <h4 
+          className="place-card-title"
+          style={{
+            fontSize: isMobile ? '18px' : '16px',
+            fontWeight: 'bold',
+            color: '#f59e0b',
             marginBottom: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            📍 {address}
-          </div>
-        )}
+            lineHeight: '1.3'
+          }}
+        >
+          {placeName}
+        </h4>
         
-        {/* Visit Time */}
-        <div style={{ 
-          fontSize: '13px', 
-          color: '#3b82f6',
-          marginBottom: '6px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px'
-        }}>
-          <span>🕒</span> {timeValue}
-        </div>
-        
-        {/* Description */}
-        <p style={{ 
-          fontSize: '13px', 
+        <p style={{
+          fontSize: '12px',
           color: '#6b7280',
-          lineHeight: '1.5',
-          marginBottom: '6px'
+          marginBottom: '8px',
+          lineHeight: '1.4',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          wordBreak: 'break-word'
         }}>
-          {descriptionValue}
+          📍 {address || 'Address not available'}
         </p>
         
-        {/* Travel Time */}
-        {travelTimeDisplay && (
-          <div style={{ 
-            fontSize: '12px', 
-            color: '#8b5cf6',
-            marginBottom: '6px',
+        <div 
+          className="place-tags"
+          style={{
             display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            <span>🚗</span> Travel: {travelTimeDisplay}
-          </div>
-        )}
-        
-        {/* Ticket Pricing & Rating in one row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          {ticketValue && (
-            <div style={{ 
-              fontSize: '12px', 
-              color: '#10b981',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
+            flexWrap: 'wrap',
+            gap: '8px',
+            marginBottom: '8px'
+          }}
+        >
+          {timeValue && (
+            <span style={{
+              fontSize: '11px',
+              color: '#374151',
+              background: '#e0e7ff',
+              padding: '4px 10px',
+              borderRadius: '20px'
             }}>
-              <span>🎫</span> {ticketValue}
-            </div>
+              🕐 {timeValue}
+            </span>
           )}
           
+          {travelTimeDisplay && (
+            <span style={{
+              fontSize: '11px',
+              color: '#374151',
+              background: '#e0e7ff',
+              padding: '4px 10px',
+              borderRadius: '20px'
+            }}>
+              🚗 Travel: {travelTimeDisplay}
+            </span>
+          )}
+          
+          {ticketValue && (
+            <span style={{
+              fontSize: '11px',
+              color: '#374151',
+              background: '#e0e7ff',
+              padding: '4px 10px',
+              borderRadius: '20px'
+            }}>
+              💰 {ticketValue}
+            </span>
+          )}
+        </div>
+        
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          flexWrap: 'wrap'
+        }}>
           {ratingValue && (
-            <div style={{ 
-              fontSize: '12px', 
+            <span style={{
+              fontSize: '12px',
+              fontWeight: 'bold',
               color: '#f59e0b',
               display: 'flex',
               alignItems: 'center',
               gap: '4px'
             }}>
-              <span>⭐</span> {ratingValue} {reviewCount > 0 && `(${reviewCount} reviews)`}
-            </div>
+              ⭐ {ratingValue}
+            </span>
           )}
+          
+          {reviewCount > 0 && (
+            <span style={{
+              fontSize: '11px',
+              color: '#6b7280'
+            }}>
+              ({reviewCount.toLocaleString()} reviews)
+            </span>
+          )}
+          
+          <span style={{
+            fontSize: '11px',
+            color: '#3b82f6',
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}>
+            Click for map →
+          </span>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default PlaceCardItem
+export default PlaceCardItem;
