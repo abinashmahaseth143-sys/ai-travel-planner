@@ -13,7 +13,6 @@ function Header() {
   const [isGuest, setIsGuest] = useState(false);
   const [remainingTrips, setRemainingTrips] = useState(2);
   
-  // Add ref for the user menu container
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -28,6 +27,25 @@ function Header() {
     return () => unsubscribe();
   }, []);
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (showTranslator) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [showTranslator]);
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -36,7 +54,6 @@ function Header() {
       }
     };
     
-    // Add event listener when menu is open
     if (showUserMenu) {
       document.addEventListener('mousedown', handleClickOutside);
     }
@@ -83,7 +100,6 @@ function Header() {
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         boxSizing: 'border-box'
       }}>
-        {/* Logo Section */}
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
@@ -107,7 +123,6 @@ function Header() {
           </span>
         </div>
         
-        {/* Right Section - User Profile ONLY */}
         <div style={{ 
           display: 'flex', 
           gap: '12px', 
@@ -160,7 +175,6 @@ function Header() {
                   overflow: 'hidden',
                   border: '1px solid #f0f0f0'
                 }}>
-                  {/* User Info Section */}
                   <div style={{ 
                     padding: '16px 20px', 
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -170,7 +184,6 @@ function Header() {
                     <p style={{ fontSize: '11px', opacity: 0.85 }}>{user.email}</p>
                   </div>
                   
-                  {/* Language Translator - Purple gradient */}
                   <button
                     onClick={() => {
                       setShowUserMenu(false);
@@ -203,7 +216,6 @@ function Header() {
                     <span>Language Translator</span>
                   </button>
                   
-                  {/* My Travel History - Blue gradient */}
                   <button
                     onClick={() => {
                       setShowUserMenu(false);
@@ -236,7 +248,6 @@ function Header() {
                     <span>My Travel History</span>
                   </button>
                   
-                  {/* Sign Out - Red gradient */}
                   <button
                     onClick={handleLogout}
                     style={{
@@ -318,28 +329,34 @@ function Header() {
         </div>
       </div>
 
-      {/* Language Translator Modal */}
+      {/* Language Translator Modal - COMPLETELY FIXED (no left/right movement) */}
       {showTranslator && (
         <div style={{
           position: 'fixed',
           top: 0,
           left: 0,
-          right: 0,
-          bottom: 0,
+          width: '100%',
+          height: '100%',
           backgroundColor: 'rgba(0,0,0,0.5)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000
+          zIndex: 9999,
+          overflow: 'hidden',
+          margin: 0,
+          padding: 0
         }} onClick={() => setShowTranslator(false)}>
           <div style={{
             backgroundColor: 'white',
             borderRadius: '20px',
-            maxWidth: '600px',
+            maxWidth: '500px',
             width: '90%',
             maxHeight: '85vh',
-            overflow: 'auto',
-            position: 'relative'
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            position: 'relative',
+            margin: '0 auto',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
           }} onClick={(e) => e.stopPropagation()}>
             <div style={{
               display: 'flex',
@@ -350,7 +367,10 @@ function Header() {
               backgroundColor: '#8b5cf6',
               color: 'white',
               borderTopLeftRadius: '20px',
-              borderTopRightRadius: '20px'
+              borderTopRightRadius: '20px',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10
             }}>
               <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 🌍 Language Translator
@@ -361,15 +381,20 @@ function Header() {
                   background: 'none',
                   border: 'none',
                   color: 'white',
-                  fontSize: '24px',
+                  fontSize: '28px',
                   cursor: 'pointer',
-                  padding: '0 8px'
+                  padding: '0 8px',
+                  lineHeight: 1
                 }}
               >
                 ×
               </button>
             </div>
-            <div style={{ padding: '20px' }}>
+            <div style={{ 
+              padding: '20px',
+              overflowX: 'hidden',
+              wordWrap: 'break-word'
+            }}>
               <LanguageTranslator />
             </div>
           </div>
