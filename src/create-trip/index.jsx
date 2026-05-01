@@ -26,9 +26,17 @@ function CreateTrip() {
   const [guestTripsRemaining, setGuestTripsRemaining] = useState(2);
   const [isListening, setIsListening] = useState(false);
   const [listeningFor, setListeningFor] = useState(null);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
   const navigate = useNavigate();
 
   let recognitionRef = null;
+
+  // Track window width for responsive design
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Check authentication status
   useEffect(() => {
@@ -353,6 +361,12 @@ function CreateTrip() {
     animation: isActive ? 'pulse 1.5s infinite' : 'none'
   });
 
+  // Get display name for signed in user
+  const getUserDisplayName = () => {
+    if (!currentUser) return '';
+    return currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -379,10 +393,10 @@ function CreateTrip() {
         boxSizing: 'border-box'
       }}>
         
-        {/* Header Section */}
+        {/* Header Section - Shows actual signed in user name */}
         <div style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-          padding: '32px 24px',
+          padding: 'clamp(20px, 5vw, 32px) clamp(16px, 4vw, 24px)',
           textAlign: 'center',
           color: 'white',
           position: 'relative',
@@ -399,7 +413,7 @@ function CreateTrip() {
           }} />
           
           <h2 style={{ 
-            fontSize: 'clamp(24px, 5vw, 32px)', 
+            fontSize: 'clamp(22px, 5vw, 32px)', 
             fontWeight: 'bold', 
             marginBottom: '12px', 
             fontFamily: 'inherit',
@@ -410,7 +424,7 @@ function CreateTrip() {
           </h2>
           
           <p style={{ 
-            fontSize: 'clamp(14px, 4vw, 16px)', 
+            fontSize: 'clamp(13px, 4vw, 16px)', 
             opacity: 0.95, 
             fontFamily: 'inherit',
             maxWidth: '600px',
@@ -421,7 +435,7 @@ function CreateTrip() {
           </p>
           
           <p style={{ 
-            fontSize: 'clamp(14px, 4vw, 16px)', 
+            fontSize: 'clamp(13px, 4vw, 16px)', 
             opacity: 0.9, 
             fontFamily: 'inherit',
             maxWidth: '600px',
@@ -431,15 +445,50 @@ function CreateTrip() {
             Get a custom itinerary designed just for you
           </p>
           
+          {/* Show actual signed-in user name - DYNAMIC */}
           {currentUser && (
-            <p style={{ marginTop: '16px', fontSize: '14px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', display: 'inline-block', padding: '6px 16px', borderRadius: '40px', fontFamily: 'inherit' }}>
-              ✓ Signed in as {currentUser.displayName || currentUser.email}
-            </p>
+            <div style={{ 
+              marginTop: '20px', 
+              display: 'flex', 
+              justifyContent: 'center',
+              width: '100%'
+            }}>
+              <p style={{ 
+                fontSize: 'clamp(11px, 3vw, 14px)', 
+                background: 'rgba(255,255,255,0.2)', 
+                backdropFilter: 'blur(10px)', 
+                display: 'inline-block', 
+                padding: '6px 16px', 
+                borderRadius: '40px', 
+                fontFamily: 'inherit',
+                margin: 0
+              }}>
+                ✓ Signed in as {getUserDisplayName()}
+              </p>
+            </div>
           )}
+          
+          {/* Guest mode display */}
           {guestMode && !currentUser && (
-            <p style={{ marginTop: '16px', fontSize: '14px', background: '#fef3c7', color: '#d97706', display: 'inline-block', padding: '6px 16px', borderRadius: '40px', fontFamily: 'inherit' }}>
-              🎁 Guest Mode: {remainingTrips} free {remainingTrips === 1 ? 'trip' : 'trips'} remaining
-            </p>
+            <div style={{ 
+              marginTop: '20px', 
+              display: 'flex', 
+              justifyContent: 'center',
+              width: '100%'
+            }}>
+              <p style={{ 
+                fontSize: 'clamp(11px, 3vw, 14px)', 
+                background: '#fef3c7', 
+                color: '#d97706', 
+                display: 'inline-block', 
+                padding: '6px 16px', 
+                borderRadius: '40px', 
+                fontFamily: 'inherit',
+                margin: 0
+              }}>
+                🎁 Guest Mode: {remainingTrips} free {remainingTrips === 1 ? 'trip' : 'trips'} remaining
+              </p>
+            </div>
           )}
         </div>
         
@@ -689,17 +738,16 @@ function CreateTrip() {
             </div>
           </div>
 
-          {/* Action Buttons Row - Responsive: Full text on laptop, short on mobile */}
+          {/* Action Buttons Row */}
           <div style={{ 
             display: 'flex', 
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '16px',
-            flexWrap: 'nowrap',
+            flexWrap: 'wrap',
             marginTop: '20px',
             width: '100%'
           }}>
-            {/* Back Button - LEFT SIDE */}
             <button 
               onClick={() => navigate('/')}
               style={{
@@ -718,9 +766,9 @@ function CreateTrip() {
                 fontFamily: 'inherit',
                 transition: 'all 0.3s ease',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                flex: 1,
-                whiteSpace: 'nowrap',
-                minWidth: '0'
+                flex: windowWidth < 500 ? '1' : 'auto',
+                minWidth: windowWidth < 500 ? 'auto' : '120px',
+                whiteSpace: 'nowrap'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
@@ -732,12 +780,9 @@ function CreateTrip() {
               }}
             >
               <AiOutlineArrowLeft size={16} />
-              {/* Responsive text: Shows "Back" on mobile, "Back to Home" on laptop */}
-              <span className="mobile-text">Back</span>
-              <span className="laptop-text">Back to Home</span>
+              {windowWidth < 500 ? 'Back' : 'Back to Home'}
             </button>
             
-            {/* Generate Button - RIGHT SIDE */}
             <button 
               onClick={handleGenerateTrip}
               disabled={loading}
@@ -758,9 +803,9 @@ function CreateTrip() {
                 transition: 'all 0.3s ease',
                 opacity: loading ? 0.6 : 1,
                 boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                flex: 1,
-                whiteSpace: 'nowrap',
-                minWidth: '0'
+                flex: windowWidth < 500 ? '1' : 'auto',
+                minWidth: windowWidth < 500 ? 'auto' : '140px',
+                whiteSpace: 'nowrap'
               }}
               onMouseEnter={(e) => {
                 if (!loading) {
@@ -776,14 +821,12 @@ function CreateTrip() {
               {loading ? (
                 <>
                   <AiOutlineLoading3Quarters style={{ animation: 'spin 1s linear infinite' }} />
-                  <span className="mobile-text">Gen...</span>
-                  <span className="laptop-text">Generating...</span>
+                  {windowWidth < 500 ? 'Gen...' : 'Generating...'}
                 </>
               ) : (
                 <>
                   ✨
-                  <span className="mobile-text">Generate</span>
-                  <span className="laptop-text">Generate My Trip</span>
+                  {windowWidth < 500 ? 'Generate' : 'Generate My Trip'}
                 </>
               )}
             </button>
@@ -819,32 +862,6 @@ function CreateTrip() {
             0% { left: -100%; }
             20% { left: 100%; }
             100% { left: 100%; }
-          }
-          
-          /* Responsive button text - Show different text on mobile vs laptop */
-          .mobile-text {
-            display: inline;
-          }
-          
-          .laptop-text {
-            display: none;
-          }
-          
-          @media (min-width: 768px) {
-            .mobile-text {
-              display: none;
-            }
-            
-            .laptop-text {
-              display: inline;
-            }
-          }
-          
-          /* Mobile responsive adjustments */
-          @media (max-width: 480px) {
-            button {
-              gap: 4px !important;
-            }
           }
         `}
       </style>

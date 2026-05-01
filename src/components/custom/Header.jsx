@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import LanguageTranslator from '../LanguageTranslator'
 import { auth, logout } from '../../service/firebaseConfig'
@@ -12,6 +12,9 @@ function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [remainingTrips, setRemainingTrips] = useState(2);
+  
+  // Add ref for the user menu container
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -24,6 +27,24 @@ function Header() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+    
+    // Add event listener when menu is open
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   const handleLogout = async () => {
     try {
@@ -40,6 +61,10 @@ function Header() {
   const handleSignIn = () => {
     localStorage.removeItem('guestMode');
     navigate('/login');
+  };
+
+  const toggleUserMenu = () => {
+    setShowUserMenu(!showUserMenu);
   };
 
   return (
@@ -82,39 +107,17 @@ function Header() {
           </span>
         </div>
         
-        {/* Right Section - Buttons and User */}
+        {/* Right Section - User Profile ONLY */}
         <div style={{ 
           display: 'flex', 
           gap: '12px', 
           alignItems: 'center',
           flexShrink: 0
         }}>
-          {/* Language Translator Button - FULL TEXT */}
-          <button 
-            onClick={() => setShowTranslator(true)}
-            style={{
-              padding: '6px 16px',
-              backgroundColor: '#8b5cf6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            🌐 Language Translator
-          </button>
-          
-          {/* User Profile Section */}
           {user ? (
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative' }} ref={userMenuRef}>
               <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
+                onClick={toggleUserMenu}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -150,17 +153,57 @@ function Header() {
                   right: 0,
                   marginTop: '8px',
                   backgroundColor: 'white',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                  minWidth: '220px',
+                  borderRadius: '16px',
+                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)',
+                  minWidth: '260px',
                   zIndex: 200,
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  border: '1px solid #f0f0f0'
                 }}>
-                  <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
-                    <p style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '4px' }}>{user.displayName}</p>
-                    <p style={{ fontSize: '12px', color: '#6b7280' }}>{user.email}</p>
+                  {/* User Info Section */}
+                  <div style={{ 
+                    padding: '16px 20px', 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white'
+                  }}>
+                    <p style={{ fontWeight: 'bold', fontSize: '15px', marginBottom: '4px' }}>{user.displayName}</p>
+                    <p style={{ fontSize: '11px', opacity: 0.85 }}>{user.email}</p>
                   </div>
                   
+                  {/* Language Translator - Purple gradient */}
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      setShowTranslator(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '14px 20px',
+                      textAlign: 'left',
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      transition: 'all 0.2s',
+                      borderBottom: '1px solid rgba(255,255,255,0.1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)';
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>🌐</span>
+                    <span>Language Translator</span>
+                  </button>
+                  
+                  {/* My Travel History - Blue gradient */}
                   <button
                     onClick={() => {
                       setShowUserMenu(false);
@@ -168,45 +211,57 @@ function Header() {
                     }}
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '14px 20px',
                       textAlign: 'left',
-                      backgroundColor: 'transparent',
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                       border: 'none',
                       cursor: 'pointer',
                       fontSize: '14px',
-                      color: '#374151',
+                      fontWeight: '500',
+                      color: 'white',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '10px',
-                      transition: 'background-color 0.2s'
+                      gap: '12px',
+                      transition: 'all 0.2s',
+                      borderBottom: '1px solid rgba(255,255,255,0.1)'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                    }}
                   >
-                    <span style={{ fontSize: '18px' }}>📜</span>
+                    <span style={{ fontSize: '20px' }}>📜</span>
                     <span>My Travel History</span>
                   </button>
                   
-                  <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '4px 0' }}></div>
-                  
+                  {/* Sign Out - Red gradient */}
                   <button
                     onClick={handleLogout}
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '14px 20px',
                       textAlign: 'left',
-                      backgroundColor: 'transparent',
+                      background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                       border: 'none',
                       cursor: 'pointer',
                       fontSize: '14px',
-                      color: '#ef4444',
+                      fontWeight: '500',
+                      color: 'white',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '10px',
-                      transition: 'background-color 0.2s'
+                      gap: '12px',
+                      transition: 'all 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                    }}
                   >
-                    <span style={{ fontSize: '18px' }}>🚪</span>
+                    <span style={{ fontSize: '20px' }}>🚪</span>
                     <span>Sign Out</span>
                   </button>
                 </div>

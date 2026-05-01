@@ -4,11 +4,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const apiKey = import.meta.env.VITE_GOOGLE_GEMINI_AI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Use ONLY models that work with standard API keys
+// ✅ CORRECTED: Use ONLY available Gemini models
 const MODELS = [
-  "gemini-2.0-flash-exp",  // Latest working model
-  "gemini-1.5-flash",       // Fast model
-  "gemini-pro"              // Legacy fallback
+  "gemini-1.5-pro",     // ✅ Most capable, widely available
+  "gemini-1.5-flash",   // ✅ Fast model
+  "gemini-1.0-pro"      // ✅ Legacy fallback
 ];
 
 // Fallback response templates
