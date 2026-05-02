@@ -7,7 +7,7 @@
     <meta name="google-site-verification" content="GZsDTolO4CE1iqKigcrYRtCaYIYlHadNGry_PDhMU_s" />
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <title>ai-travel-planner</title>
+    <title>AI Travel Planner</title>
 
     <style>
       * {
@@ -28,39 +28,50 @@
     <!-- GOOGLE MAPS SCRIPT -->
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnJwDgg2l5yJJUPL69v4qtS0uzoYcFpj0&libraries=places&loading=async"></script>
     
-    <!-- SILENCE ALL CONSOLE WARNINGS AND ERRORS -->
+    <!-- ONLY SILENCE SPECIFIC WARNINGS (NOT ALL ERRORS) -->
     <script>
-      // Override all console methods to do nothing
-      console.log = function() {};
-      console.warn = function() {};
-      console.error = function() {};
-      console.info = function() {};
-      console.debug = function() {};
-      console.trace = function() {};
+      // Save original console methods
+      const originalConsoleError = console.error;
+      const originalConsoleWarn = console.warn;
       
-      // Prevent all error events
+      // Only filter out specific annoying warnings
+      console.error = function(...args) {
+        const message = args[0] || '';
+        // Allow Gemini API errors to show (they're important for debugging)
+        if (message.includes('Violation') || message.includes('Forced reflow')) {
+          return; // Hide performance violations
+        }
+        originalConsoleError.apply(console, args);
+      };
+      
+      console.warn = function(...args) {
+        const message = args[0] || '';
+        // Filter out React performance warnings but keep API errors
+        if (message.includes('Violation') || message.includes('Forced reflow')) {
+          return;
+        }
+        originalConsoleWarn.apply(console, args);
+      };
+      
+      // Keep error events for debugging (don't silence them)
+      // Only prevent if it's a known non-critical error
       window.addEventListener('error', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
+        const message = e.message || '';
+        // Allow errors to show unless they're performance related
+        if (message.includes('ResizeObserver') || message.includes('Script error')) {
+          e.preventDefault();
+          return false;
+        }
+        // Don't prevent other errors - let them show for debugging
+        return true;
       });
       
-      // Prevent unhandled promise rejections
+      // Don't completely silence unhandled rejections - log them
       window.addEventListener('unhandledrejection', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
+        console.error('Unhandled rejection:', e.reason);
+        // Don't prevent - let it show
         return false;
       });
-      
-      // Override global error handler
-      window.onerror = function() {
-        return true;
-      };
-      
-      // Override onunhandledrejection
-      window.onunhandledrejection = function() {
-        return true;
-      };
     </script>
     
     <script type="module" src="/src/main.jsx"></script>
