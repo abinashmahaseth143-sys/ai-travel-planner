@@ -8,7 +8,6 @@ import Hotels from '../components/Hotels';
 import PlacesToVisit from '../components/PlacesToVisit';
 import Footer from '../components/Footer';
 import WeatherWidget from '../components/WeatherWidget';
-import { AiOutlineArrowLeft } from 'react-icons/ai';
 
 function Viewtrip() {
   const { tripId } = useParams();
@@ -16,6 +15,14 @@ function Viewtrip() {
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  // Track window width for responsive design
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (tripId) {
@@ -52,13 +59,17 @@ function Viewtrip() {
     }
   };
 
-  const handleGoBack = () => {
-    navigate('/');
+  // Back button goes to Create Trip
+  const handleBack = () => {
+    navigate('/create-trip');
   };
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const isMobile = windowWidth <= 768;
+  const isSmallMobile = windowWidth <= 480;
 
   if (loading) {
     return (
@@ -103,7 +114,7 @@ function Viewtrip() {
         <div style={{ textAlign: 'center', color: 'white' }}>
           <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '16px' }}>No trip found</h2>
           <button 
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/create-trip')}
             style={{
               background: 'white',
               color: '#667eea',
@@ -115,7 +126,7 @@ function Viewtrip() {
               fontWeight: 'bold'
             }}
           >
-            Go Back Home
+            Create New Trip
           </button>
         </div>
       </div>
@@ -166,120 +177,68 @@ function Viewtrip() {
         {/* Footer */}
         <Footer />
         
-        {/* Bottom Action Bar - All buttons in ONE LINE */}
+        {/* Bottom Action Bar - Travel Guide and Back button in SAME LINE with proper spacing */}
         <div style={{ 
-          padding: '20px 30px 30px 30px',
+          padding: isMobile ? '20px 16px 30px 16px' : '20px 30px 30px 30px',
           borderTop: '1px solid #e5e7eb',
           marginTop: '20px'
         }}>
           <div style={{ 
             display: 'flex', 
-            justifyContent: 'space-between', 
+            justifyContent: 'center',
             alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '12px'
+            gap: isMobile ? '12px' : '20px',
+            flexWrap: 'nowrap'
           }}>
-            {/* Left side - Three buttons in one line */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => navigate('/my-trips')}
-                style={{
-                  padding: '10px 20px',
-                  background: '#f3f4f6',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '40px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#e0e7ff';
-                  e.currentTarget.style.borderColor = '#667eea';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#f3f4f6';
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                }}
-              >
-                📜 View All Trips
-              </button>
-              
-              <button
-                onClick={() => navigate('/create-trip')}
-                style={{
-                  padding: '10px 20px',
-                  background: '#f3f4f6',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '40px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#e0e7ff';
-                  e.currentTarget.style.borderColor = '#667eea';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#f3f4f6';
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                }}
-              >
-                ✨ Plan Another Trip
-              </button>
-              
-              <button
-                onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(trip?.userSelection?.location)} travel guide`, '_blank')}
-                style={{
-                  padding: '10px 20px',
-                  background: '#f3f4f6',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '40px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#e0e7ff';
-                  e.currentTarget.style.borderColor = '#667eea';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#f3f4f6';
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                }}
-              >
-                🔍 Travel Guide
-              </button>
-            </div>
-            
-            {/* Right side - Back to Home button */}
+            {/* Travel Guide Button */}
             <button
-              onClick={handleGoBack}
+              onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(trip?.userSelection?.location)} travel guide`, '_blank')}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
+                padding: isSmallMobile ? '10px 12px' : '12px 28px',
+                background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                border: 'none',
+                borderRadius: '40px',
+                cursor: 'pointer',
+                fontSize: isSmallMobile ? '12px' : '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s',
+                color: 'white',
+                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                minWidth: isSmallMobile ? '120px' : '150px',
+                textAlign: 'center',
+                flex: 1,
+                maxWidth: isMobile ? '45%' : 'auto'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+              }}
+            >
+              {isSmallMobile ? '🔍 Travel Guide' : '🔍 Travel Guide'}
+            </button>
+            
+            {/* Back Button - Same size, no arrow */}
+            <button
+              onClick={handleBack}
+              style={{
+                padding: isSmallMobile ? '10px 12px' : '12px 28px',
                 background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
                 color: 'white',
-                padding: '10px 24px',
                 borderRadius: '40px',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: '13px',
+                fontSize: isSmallMobile ? '12px' : '14px',
                 fontWeight: '500',
                 transition: 'all 0.3s ease',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                minWidth: isSmallMobile ? '80px' : '150px',
+                textAlign: 'center',
+                flex: 1,
+                maxWidth: isMobile ? '45%' : 'auto'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
@@ -290,48 +249,11 @@ function Viewtrip() {
                 e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
               }}
             >
-              <AiOutlineArrowLeft size={16} />
-              Back to Home
+              Back
             </button>
           </div>
         </div>
       </div>
-      
-      {/* Floating Back to Top Button */}
-      {showBackToTop && (
-        <button
-          onClick={scrollToTop}
-          style={{
-            position: 'fixed',
-            bottom: '30px',
-            right: '30px',
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            color: 'white',
-            width: '50px',
-            height: '50px',
-            borderRadius: '50%',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '24px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-            transition: 'all 0.3s ease',
-            zIndex: 100
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-3px)';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-          }}
-        >
-          ↑
-        </button>
-      )}
       
       <style>
         {`
@@ -345,6 +267,11 @@ function Viewtrip() {
             overflow-x: hidden;
             width: 100%;
             position: relative;
+          }
+          
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
           }
         `}
       </style>

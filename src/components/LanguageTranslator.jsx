@@ -15,91 +15,257 @@ function LanguageTranslator() {
   const [copyInput, setCopyInput] = useState(false)
   const [copyOutput, setCopyOutput] = useState(false)
   const [charCount, setCharCount] = useState(0)
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
 
   const sourceRef = useRef(null)
   const targetRef = useRef(null)
   const recognitionRef = useRef(null)
 
-  // COMPLETE WORLD LANGUAGES - NO DUPLICATES
+  // Track window size for responsive design
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Responsive breakpoints
+  const isMobile = windowWidth <= 768
+  const isSmallMobile = windowWidth <= 480
+
+  // COMPLETE 212+ WORLD LANGUAGES
   const languages = {
-    // Official UN Languages
-    en: 'English', es: 'Spanish', fr: 'French', ru: 'Russian', 
-    zh: 'Chinese', ar: 'Arabic', de: 'German', pt: 'Portuguese',
-    hi: 'Hindi', ja: 'Japanese', ko: 'Korean', it: 'Italian',
+    // Official UN Languages (6)
+    en: 'English',
+    es: 'Spanish',
+    fr: 'French',
+    ru: 'Russian',
+    zh: 'Chinese',
+    ar: 'Arabic',
     
-    // European Languages
-    nl: 'Dutch', sv: 'Swedish', no: 'Norwegian', da: 'Danish',
-    fi: 'Finnish', pl: 'Polish', uk: 'Ukrainian', cs: 'Czech',
-    hu: 'Hungarian', ro: 'Romanian', bg: 'Bulgarian', el: 'Greek',
-    tr: 'Turkish', sr: 'Serbian', hr: 'Croatian', sk: 'Slovak',
-    sl: 'Slovenian', lt: 'Lithuanian', lv: 'Latvian', et: 'Estonian',
-    is: 'Icelandic', ga: 'Irish', cy: 'Welsh', mt: 'Maltese',
-    sq: 'Albanian', mk: 'Macedonian', bs: 'Bosnian', ca: 'Catalan',
-    eu: 'Basque', gl: 'Galician', oc: 'Occitan', br: 'Breton',
-    fy: 'Frisian', lb: 'Luxembourgish', sc: 'Sardinian', nap: 'Neapolitan',
-    sic: 'Sicilian', lij: 'Ligurian', fur: 'Friulian', lad: 'Ladino',
+    // Other Major Languages (30+)
+    hi: 'Hindi',
+    bn: 'Bengali',
+    pt: 'Portuguese',
+    id: 'Indonesian',
+    ur: 'Urdu',
+    de: 'German',
+    ja: 'Japanese',
+    ko: 'Korean',
+    it: 'Italian',
+    tr: 'Turkish',
+    vi: 'Vietnamese',
+    ta: 'Tamil',
+    te: 'Telugu',
+    mr: 'Marathi',
+    gu: 'Gujarati',
+    kn: 'Kannada',
+    ml: 'Malayalam',
+    pa: 'Punjabi',
+    ne: 'Nepali',
+    si: 'Sinhala',
+    my: 'Burmese',
+    km: 'Khmer',
+    lo: 'Lao',
+    th: 'Thai',
+    ms: 'Malay',
+    fil: 'Filipino',
+    nl: 'Dutch',
+    sv: 'Swedish',
+    no: 'Norwegian',
+    da: 'Danish',
+    fi: 'Finnish',
+    pl: 'Polish',
+    cs: 'Czech',
+    hu: 'Hungarian',
+    ro: 'Romanian',
+    bg: 'Bulgarian',
+    el: 'Greek',
+    he: 'Hebrew',
+    fa: 'Persian',
+    uk: 'Ukrainian',
     
-    // Asian Languages
-    th: 'Thai', vi: 'Vietnamese', id: 'Indonesian', ms: 'Malay',
-    fil: 'Filipino', ta: 'Tamil', te: 'Telugu', mr: 'Marathi',
-    gu: 'Gujarati', kn: 'Kannada', ml: 'Malayalam', pa: 'Punjabi',
-    bn: 'Bengali', ne: 'Nepali', si: 'Sinhala', my: 'Burmese',
-    km: 'Khmer', lo: 'Lao', mn: 'Mongolian', ug: 'Uyghur',
-    bo: 'Tibetan', dz: 'Dzongkha', ky: 'Kyrgyz', kk: 'Kazakh',
-    tk: 'Turkmen', tg: 'Tajik', ur: 'Urdu', ps: 'Pashto',
-    sd: 'Sindhi', bal: 'Balochi', awa: 'Awadhi', hif: 'Fiji Hindi',
-    bho: 'Bhojpuri', mai: 'Maithili', mag: 'Magahi', sat: 'Santali',
-    or: 'Odia', asm: 'Assamese', mni: 'Manipuri', kha: 'Khasi',
-    miz: 'Mizo', brx: 'Bodo',
+    // European Languages (40+)
+    sr: 'Serbian',
+    hr: 'Croatian',
+    sk: 'Slovak',
+    sl: 'Slovenian',
+    lt: 'Lithuanian',
+    lv: 'Latvian',
+    et: 'Estonian',
+    is: 'Icelandic',
+    ga: 'Irish',
+    cy: 'Welsh',
+    mt: 'Maltese',
+    sq: 'Albanian',
+    mk: 'Macedonian',
+    bs: 'Bosnian',
+    ca: 'Catalan',
+    eu: 'Basque',
+    gl: 'Galician',
+    oc: 'Occitan',
+    br: 'Breton',
+    fy: 'Frisian',
+    lb: 'Luxembourgish',
+    sc: 'Sardinian',
+    nap: 'Neapolitan',
+    sic: 'Sicilian',
+    lij: 'Ligurian',
+    fur: 'Friulian',
+    lad: 'Ladino',
+    ast: 'Asturian',
+    arag: 'Aragonese',
+    vec: 'Venetian',
+    lmo: 'Lombard',
+    pms: 'Piedmontese',
+    eml: 'Emilian-Romagnol',
+    wln: 'Walloon',
+    vls: 'West Flemish',
+    lim: 'Limburgish',
+    zea: 'Zeelandic',
+    fry: 'West Frisian',
+    stq: 'Saterland Frisian',
+    nds: 'Low German',
+    pdc: 'Pennsylvania German',
+    gsw: 'Swiss German',
+    bar: 'Bavarian',
+    cim: 'Cimbrian',
+    rm: 'Romansh',
+    lld: 'Ladin',
+    ron: 'Romantsch',
+    frp: 'Franco-Provençal',
     
-    // Middle Eastern Languages
-    he: 'Hebrew', fa: 'Persian', ku: 'Kurdish', az: 'Azerbaijani',
-    hy: 'Armenian', ka: 'Georgian', am: 'Amharic', ti: 'Tigrinya',
-    so: 'Somali', om: 'Oromo', kab: 'Kabyle', tam: 'Tamazight',
-    ary: 'Moroccan Arabic', arz: 'Egyptian Arabic', acm: 'Mesopotamian Arabic',
+    // Asian Languages (50+)
+    mn: 'Mongolian',
+    ug: 'Uyghur',
+    bo: 'Tibetan',
+    dz: 'Dzongkha',
+    ky: 'Kyrgyz',
+    kk: 'Kazakh',
+    tk: 'Turkmen',
+    tg: 'Tajik',
+    ps: 'Pashto',
+    sd: 'Sindhi',
+    bal: 'Balochi',
+    awa: 'Awadhi',
+    hif: 'Fiji Hindi',
+    bho: 'Bhojpuri',
+    mai: 'Maithili',
+    mag: 'Magahi',
+    sat: 'Santali',
+    or: 'Odia',
+    asm: 'Assamese',
+    mni: 'Manipuri',
+    kha: 'Khasi',
+    miz: 'Mizo',
+    brx: 'Bodo',
+    kok: 'Konkani',
+    gom: 'Goan Konkani',
+    tcy: 'Tulu',
+    az: 'Azerbaijani',
+    hy: 'Armenian',
+    ka: 'Georgian',
+    ku: 'Kurdish',
     
-    // African Languages - NO DUPLICATES
-    sw: 'Swahili', zu: 'Zulu', xh: 'Xhosa', st: 'Sesotho',
-    tn: 'Setswana', ts: 'Tsonga', ve: 'Venda', nr: 'South Ndebele',
-    ny: 'Chichewa', ig: 'Igbo', yo: 'Yoruba', ha: 'Hausa',
-    wo: 'Wolof', ff: 'Fula', mos: 'Mossi', ew: 'Ewe',
-    ak: 'Akan', tw: 'Twi', fon: 'Fon', bamb: 'Bambara',
-    diu: 'Dinka', nus: 'Nuer', luo: 'Luo', lug: 'Ganda',
-    run: 'Kirundi', kin: 'Kinyarwanda', sna: 'Shona', nd: 'North Ndebele',
-    ln: 'Lingala', kg: 'Kongo', rw: 'Kinyarwanda', lg: 'Luganda',
+    // Middle Eastern Languages (15+)
+    am: 'Amharic',
+    ti: 'Tigrinya',
+    so: 'Somali',
+    om: 'Oromo',
+    kab: 'Kabyle',
+    tam: 'Tamazight',
+    ary: 'Moroccan Arabic',
+    arz: 'Egyptian Arabic',
+    acm: 'Mesopotamian Arabic',
     
-    // Americas - Indigenous Languages
-    qu: 'Quechua', ay: 'Aymara', gn: 'Guarani', map: 'Mapudungun',
-    haw: 'Hawaiian', tah: 'Tahitian', rap: 'Rapanui', smo: 'Samoan',
-    mao: 'Maori', ton: 'Tongan', fj: 'Fijian', hil: 'Hiligaynon',
-    ceb: 'Cebuano', ilo: 'Ilocano', bik: 'Bikol', pam: 'Kapampangan',
-    pang: 'Pangasinan', war: 'Waray', tgl: 'Tagalog', mri: 'Cook Islands Maori',
-    rar: 'Rarotongan', niu: 'Niuean',
+    // African Languages (40+)
+    sw: 'Swahili',
+    zu: 'Zulu',
+    xh: 'Xhosa',
+    st: 'Sesotho',
+    tn: 'Setswana',
+    ts: 'Tsonga',
+    ve: 'Venda',
+    nr: 'South Ndebele',
+    ny: 'Chichewa',
+    ig: 'Igbo',
+    yo: 'Yoruba',
+    ha: 'Hausa',
+    wo: 'Wolof',
+    ff: 'Fula',
+    mos: 'Mossi',
+    ew: 'Ewe',
+    ak: 'Akan',
+    tw: 'Twi',
+    fon: 'Fon',
+    bamb: 'Bambara',
+    diu: 'Dinka',
+    nus: 'Nuer',
+    luo: 'Luo',
+    lug: 'Ganda',
+    run: 'Kirundi',
+    kin: 'Kinyarwanda',
+    sna: 'Shona',
+    nd: 'North Ndebele',
+    ln: 'Lingala',
+    kg: 'Kongo',
+    rw: 'Kinyarwanda',
+    lg: 'Luganda',
     
-    // Australian & Pacific Languages
-    tpi: 'Tok Pisin', bis: 'Bislama', hmo: 'Hiri Motu', pou: 'Pohnpeian',
-    chu: 'Chuukese', kos: 'Kosraean', mah: 'Marshallese', kal: 'Kalaallisut',
-    cre: 'Cree', oji: 'Ojibwe', moh: 'Mohawk', nav: 'Navajo',
-    che: 'Cherokee', lak: 'Lakota', dak: 'Dakota', hop: 'Hopi',
+    // Americas (Indigenous + Regional) (30+)
+    qu: 'Quechua',
+    ay: 'Aymara',
+    gn: 'Guarani',
+    map: 'Mapudungun',
+    haw: 'Hawaiian',
+    tah: 'Tahitian',
+    rap: 'Rapanui',
+    smo: 'Samoan',
+    mao: 'Maori',
+    ton: 'Tongan',
+    fj: 'Fijian',
+    hil: 'Hiligaynon',
+    ceb: 'Cebuano',
+    ilo: 'Ilocano',
+    bik: 'Bikol',
+    pam: 'Kapampangan',
+    pang: 'Pangasinan',
+    war: 'Waray',
+    tgl: 'Tagalog',
+    mri: 'Cook Islands Maori',
+    rar: 'Rarotongan',
+    niu: 'Niuean',
+    tpi: 'Tok Pisin',
+    bis: 'Bislama',
+    hmo: 'Hiri Motu',
+    pou: 'Pohnpeian',
+    chu: 'Chuukese',
+    kos: 'Kosraean',
+    mah: 'Marshallese',
+    kal: 'Kalaallisut',
+    cre: 'Cree',
+    oji: 'Ojibwe',
+    moh: 'Mohawk',
+    nav: 'Navajo',
+    che: 'Cherokee',
+    lak: 'Lakota',
+    dak: 'Dakota',
+    hop: 'Hopi',
     zun: 'Zuni',
     
-    // Constructed Languages
-    epo: 'Esperanto', ido: 'Ido', vol: 'Volapük', ina: 'Interlingua',
-    ile: 'Interlingue', lat: 'Latin', tlh: 'Klingon',
+    // Constructed Languages (10+)
+    epo: 'Esperanto',
+    ido: 'Ido',
+    vol: 'Volapük',
+    ina: 'Interlingua',
+    ile: 'Interlingue',
+    lat: 'Latin',
+    tlh: 'Klingon',
     
-    // Regional European
-    ast: 'Asturian', arag: 'Aragonese', ron: 'Romantsch', frp: 'Franco-Provençal',
-    vec: 'Venetian', lmo: 'Lombard', pms: 'Piedmontese', eml: 'Emilian-Romagnol',
-    wln: 'Walloon', vls: 'West Flemish', lim: 'Limburgish', zea: 'Zeelandic',
-    fry: 'West Frisian', stq: 'Saterland Frisian', nds: 'Low German',
-    pdc: 'Pennsylvania German', gsw: 'Swiss German', bar: 'Bavarian', cim: 'Cimbrian',
-    rm: 'Romansh', lld: 'Ladin', srd: 'Sardinian',
-    
-    // South Asian Regional
-    kok: 'Konkani', gom: 'Goan Konkani', tcy: 'Tulu'
+    // South Asian Regional (additional)
+    srd: 'Sardinian'
   }
 
-  // Flags for languages
+  // Flags for major languages
   const flags = {
     en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷', ru: '🇷🇺', zh: '🇨🇳', ar: '🇸🇦',
     de: '🇩🇪', pt: '🇵🇹', hi: '🇮🇳', ja: '🇯🇵', ko: '🇰🇷', it: '🇮🇹',
@@ -132,6 +298,8 @@ function LanguageTranslator() {
         name.toLowerCase().includes(term) || code.toLowerCase().includes(term)
       )
     }
+    // Sort alphabetically by name
+    filtered.sort((a, b) => a[1].localeCompare(b[1]))
     return filtered
   }
 
@@ -289,7 +457,11 @@ function LanguageTranslator() {
     'Can I have the menu, please?',
     'What time does the train leave?',
     'Help me, please!',
-    'How are you?'
+    'How are you?',
+    'Thank you very much',
+    'What is your name?',
+    'How do I get to the airport?',
+    'I would like to order food'
   ]
 
   const sourceLanguages = getFilteredLanguages(sourceSearch)
@@ -299,89 +471,126 @@ function LanguageTranslator() {
     return languages[code] || code
   }
 
+  const getFlag = (code) => {
+    return flags[code] || '🌐'
+  }
+
+  // Responsive styles
+  const heroPadding = isMobile ? '16px' : '28px'
+  const heroBorderRadius = isMobile ? '20px' : '28px'
+  const heroFontSize = isMobile ? '22px' : '28px'
+  const sectionPadding = isMobile ? '16px' : '24px'
+  const sectionBorderRadius = isMobile ? '20px' : '24px'
+  const gridGap = isMobile ? '10px' : '16px'
+  const swapButtonSize = isMobile ? '40px' : '48px'
+  const micButtonSize = isMobile ? '40px' : '48px'
+
+  const totalLanguages = Object.keys(languages).length
+
   return (
     <div style={{
-      maxWidth: '1000px',
-      margin: '0 auto',
-      padding: '20px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      width: '100%',
+      margin: 0,
+      padding: 0,
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      boxSizing: 'border-box'
     }}>
       {/* Hero Section */}
       <div style={{
         textAlign: 'center',
-        marginBottom: '32px',
-        padding: '28px',
+        marginBottom: isMobile ? '20px' : '32px',
+        padding: heroPadding,
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        borderRadius: '28px',
+        borderRadius: heroBorderRadius,
         color: 'white'
       }}>
-        <div style={{ fontSize: '52px', marginBottom: '8px' }}>🌐</div>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>Universal Language Translator</h1>
-        <p style={{ fontSize: '14px', opacity: 0.9 }}>
-          Translate between {Object.keys(languages).length}+ languages from around the world
-        </p>
-        <p style={{ fontSize: '12px', opacity: 0.7, marginTop: '8px' }}>
-          🌍 Every language, every dialect, every voice matters
-        </p>
+        <div style={{ fontSize: isMobile ? '40px' : '52px', marginBottom: '8px' }}>🌐</div>
+        <h1 style={{ fontSize: heroFontSize, fontWeight: 'bold', marginBottom: '8px' }}>
+          {isSmallMobile ? "Translator" : "Universal Language Translator"}
+        </h1>
+        {!isSmallMobile && (
+          <>
+            <p style={{ fontSize: isMobile ? '12px' : '14px', opacity: 0.9 }}>
+              Translate between {totalLanguages}+ languages from around the world
+            </p>
+            <p style={{ fontSize: isMobile ? '10px' : '12px', opacity: 0.7, marginTop: '8px' }}>
+              🌍 Every language, every dialect, every voice matters
+            </p>
+          </>
+        )}
+        {isSmallMobile && (
+          <p style={{ fontSize: '11px', opacity: 0.9, marginTop: '4px' }}>
+            {totalLanguages}+ Languages Worldwide
+          </p>
+        )}
       </div>
 
       {/* Language Selector Cards */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',
-        gap: '16px',
-        marginBottom: '32px',
+        gap: gridGap,
+        marginBottom: isMobile ? '20px' : '32px',
         alignItems: 'center'
       }}>
         {/* Source Language Card */}
         <div ref={sourceRef} style={{
           background: 'white',
-          borderRadius: '20px',
-          padding: '16px',
+          borderRadius: isMobile ? '16px' : '20px',
+          padding: isMobile ? '12px' : '16px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          border: '1px solid #e2e8f0'
+          border: '1px solid #e2e8f0',
+          position: 'relative'
         }}>
-          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px', fontWeight: '600', letterSpacing: '0.5px' }}>📤 TRANSLATE FROM</div>
+          <div style={{ fontSize: isMobile ? '10px' : '12px', color: '#64748b', marginBottom: '8px', fontWeight: '600', letterSpacing: '0.5px' }}>
+            📤 {isMobile ? "FROM" : "TRANSLATE FROM"}
+          </div>
           <div
             onClick={() => setShowSourceDropdown(!showSourceDropdown)}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '12px',
+              padding: isMobile ? '8px' : '12px',
               background: '#f8fafc',
               borderRadius: '12px',
               cursor: 'pointer',
               border: '1px solid #e2e8f0',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
           >
-            <span style={{ fontSize: '15px', fontWeight: '500' }}>
-              {flags[sourceLanguage] || '🌐'} {getLanguageDisplay(sourceLanguage)}
+            <span style={{ 
+              fontSize: isMobile ? '13px' : '15px', 
+              fontWeight: '500', 
+              overflow: 'hidden', 
+              textOverflow: 'ellipsis', 
+              whiteSpace: 'nowrap'
+            }}>
+              {getFlag(sourceLanguage)} {getLanguageDisplay(sourceLanguage)}
             </span>
             <span style={{ color: '#94a3b8', fontSize: '12px' }}>▼</span>
           </div>
           {showSourceDropdown && (
             <div style={{
               position: 'absolute',
+              top: '100%',
+              left: 0,
               zIndex: 1000,
               background: 'white',
               borderRadius: '12px',
               marginTop: '8px',
               boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
               border: '1px solid #e2e8f0',
-              width: 'calc(100% - 32px)',
+              width: '100%',
               maxHeight: '350px',
               overflow: 'auto'
             }}>
               <input
                 type="text"
-                placeholder="🔍 Search any language in the world..."
+                placeholder="🔍 Search 212+ languages..."
                 value={sourceSearch}
                 onChange={(e) => setSourceSearch(e.target.value)}
-                style={{ width: '100%', padding: '12px', border: 'none', borderBottom: '1px solid #e2e8f0', outline: 'none', fontSize: '14px' }}
+                style={{ width: '100%', padding: '12px', border: 'none', borderBottom: '1px solid #e2e8f0', outline: 'none', fontSize: isMobile ? '13px' : '14px' }}
                 autoFocus
               />
               <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
@@ -397,19 +606,22 @@ function LanguageTranslator() {
                       padding: '10px 12px',
                       cursor: 'pointer',
                       background: sourceLanguage === code ? '#eef2ff' : 'white',
-                      fontSize: '13px',
+                      fontSize: isMobile ? '12px' : '13px',
                       borderBottom: '1px solid #f1f5f9',
-                      transition: 'background 0.1s'
+                      transition: 'background 0.1s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = sourceLanguage === code ? '#eef2ff' : 'white'}
                   >
-                    {flags[code] || '🌐'} {name}
+                    <span style={{ fontSize: '18px' }}>{getFlag(code)}</span>
+                    <span style={{ flex: 1 }}>{name}</span>
+                    {!isSmallMobile && <span style={{ fontSize: '10px', color: '#94a3b8' }}>{code.toUpperCase()}</span>}
                   </div>
                 ))}
               </div>
               <div style={{ padding: '8px 12px', fontSize: '11px', color: '#94a3b8', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-                {sourceLanguages.length} languages available
+                {sourceLanguages.length} of {totalLanguages}+ languages
               </div>
             </div>
           )}
@@ -419,26 +631,19 @@ function LanguageTranslator() {
         <button
           onClick={swapLanguages}
           style={{
-            width: '48px',
-            height: '48px',
+            width: swapButtonSize,
+            height: swapButtonSize,
             borderRadius: '50%',
             background: 'white',
             border: '1px solid #e2e8f0',
             cursor: 'pointer',
-            fontSize: '20px',
+            fontSize: isMobile ? '16px' : '20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'all 0.2s',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)'
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)'
-            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            flexShrink: 0
           }}
         >
           🔄
@@ -447,50 +652,61 @@ function LanguageTranslator() {
         {/* Target Language Card */}
         <div ref={targetRef} style={{
           background: 'white',
-          borderRadius: '20px',
-          padding: '16px',
+          borderRadius: isMobile ? '16px' : '20px',
+          padding: isMobile ? '12px' : '16px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          border: '1px solid #e2e8f0'
+          border: '1px solid #e2e8f0',
+          position: 'relative'
         }}>
-          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px', fontWeight: '600', letterSpacing: '0.5px' }}>📥 TRANSLATE TO</div>
+          <div style={{ fontSize: isMobile ? '10px' : '12px', color: '#64748b', marginBottom: '8px', fontWeight: '600', letterSpacing: '0.5px' }}>
+            📥 {isMobile ? "TO" : "TRANSLATE TO"}
+          </div>
           <div
             onClick={() => setShowTargetDropdown(!showTargetDropdown)}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '12px',
+              padding: isMobile ? '8px' : '12px',
               background: '#f8fafc',
               borderRadius: '12px',
               cursor: 'pointer',
               border: '1px solid #e2e8f0',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
           >
-            <span style={{ fontSize: '15px', fontWeight: '500' }}>{flags[targetLanguage] || '🌐'} {getLanguageDisplay(targetLanguage)}</span>
+            <span style={{ 
+              fontSize: isMobile ? '13px' : '15px', 
+              fontWeight: '500', 
+              overflow: 'hidden', 
+              textOverflow: 'ellipsis', 
+              whiteSpace: 'nowrap'
+            }}>
+              {getFlag(targetLanguage)} {getLanguageDisplay(targetLanguage)}
+            </span>
             <span style={{ color: '#94a3b8', fontSize: '12px' }}>▼</span>
           </div>
           {showTargetDropdown && (
             <div style={{
               position: 'absolute',
+              top: '100%',
+              left: 0,
               zIndex: 1000,
               background: 'white',
               borderRadius: '12px',
               marginTop: '8px',
               boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
               border: '1px solid #e2e8f0',
-              width: 'calc(100% - 32px)',
+              width: '100%',
               maxHeight: '350px',
               overflow: 'auto'
             }}>
               <input
                 type="text"
-                placeholder="🔍 Search any language in the world..."
+                placeholder="🔍 Search 212+ languages..."
                 value={targetSearch}
                 onChange={(e) => setTargetSearch(e.target.value)}
-                style={{ width: '100%', padding: '12px', border: 'none', borderBottom: '1px solid #e2e8f0', outline: 'none', fontSize: '14px' }}
+                style={{ width: '100%', padding: '12px', border: 'none', borderBottom: '1px solid #e2e8f0', outline: 'none', fontSize: isMobile ? '13px' : '14px' }}
                 autoFocus
               />
               <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
@@ -506,19 +722,22 @@ function LanguageTranslator() {
                       padding: '10px 12px',
                       cursor: 'pointer',
                       background: targetLanguage === code ? '#eef2ff' : 'white',
-                      fontSize: '13px',
+                      fontSize: isMobile ? '12px' : '13px',
                       borderBottom: '1px solid #f1f5f9',
-                      transition: 'background 0.1s'
+                      transition: 'background 0.1s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = targetLanguage === code ? '#eef2ff' : 'white'}
                   >
-                    {flags[code] || '🌐'} {name}
+                    <span style={{ fontSize: '18px' }}>{getFlag(code)}</span>
+                    <span style={{ flex: 1 }}>{name}</span>
+                    {!isSmallMobile && <span style={{ fontSize: '10px', color: '#94a3b8' }}>{code.toUpperCase()}</span>}
                   </div>
                 ))}
               </div>
               <div style={{ padding: '8px 12px', fontSize: '11px', color: '#94a3b8', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-                {targetLanguages.length} languages available
+                {targetLanguages.length} of {totalLanguages}+ languages
               </div>
             </div>
           )}
@@ -528,83 +747,79 @@ function LanguageTranslator() {
       {/* Input Section */}
       <div style={{
         background: 'white',
-        borderRadius: '24px',
-        padding: '24px',
-        marginBottom: '20px',
+        borderRadius: sectionBorderRadius,
+        padding: sectionPadding,
+        marginBottom: isMobile ? '16px' : '20px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        border: '1px solid #e2e8f0'
+        border: '1px solid #e2e8f0',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '20px' }}>📝</span>
-            <span style={{ fontWeight: '600', color: '#1e293b' }}>Source Text</span>
-            <span style={{ fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: '12px' }}>
-              {flags[sourceLanguage] || '🌐'} {getLanguageDisplay(sourceLanguage)}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: isMobile ? '18px' : '20px' }}>📝</span>
+            <span style={{ fontWeight: '600', color: '#1e293b', fontSize: isMobile ? '14px' : '16px' }}>Source Text</span>
+            <span style={{ fontSize: '10px', color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: '12px' }}>
+              {getFlag(sourceLanguage)} {getLanguageDisplay(sourceLanguage)}
             </span>
           </div>
           <button
             onClick={() => copyToClipboard(inputText, 'input')}
             disabled={!inputText}
             style={{
-              padding: '6px 12px',
+              padding: '4px 12px',
               background: '#f1f5f9',
               border: 'none',
               borderRadius: '20px',
               cursor: inputText ? 'pointer' : 'not-allowed',
-              fontSize: '12px',
+              fontSize: '11px',
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
               opacity: inputText ? 1 : 0.5,
               transition: 'all 0.2s'
             }}
-            onMouseEnter={(e) => {
-              if (inputText) e.currentTarget.style.background = '#e2e8f0'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#f1f5f9'
-            }}
           >
             📋 {copyInput ? 'Copied!' : 'Copy'}
           </button>
         </div>
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', width: '100%' }}>
           <textarea
             value={inputText}
             onChange={handleInputChange}
             placeholder={`Type text in ${getLanguageDisplay(sourceLanguage)} or click the microphone to speak...`}
-            rows="4"
+            rows={isMobile ? 3 : 4}
             style={{
               width: '100%',
-              padding: '16px',
-              paddingRight: '60px',
-              fontSize: '15px',
+              padding: isMobile ? '12px' : '16px',
+              paddingRight: isMobile ? '50px' : '60px',
+              fontSize: isMobile ? '14px' : '15px',
               border: '1px solid #e2e8f0',
               borderRadius: '16px',
               resize: 'vertical',
               fontFamily: 'inherit',
               background: '#fafbfc',
               lineHeight: '1.5',
-              transition: 'border 0.2s'
+              transition: 'border 0.2s',
+              boxSizing: 'border-box'
             }}
             onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
             onBlur={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
           />
-          {/* Mic Button */}
           <button
             onClick={startListening}
             onDoubleClick={stopListening}
             style={{
               position: 'absolute',
-              bottom: '16px',
-              right: '16px',
+              bottom: isMobile ? '12px' : '16px',
+              right: isMobile ? '12px' : '16px',
               background: isListening 
                 ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
                 : 'linear-gradient(135deg, #10b981, #059669)',
               border: 'none',
               borderRadius: '50%',
-              width: '48px',
-              height: '48px',
+              width: micButtonSize,
+              height: micButtonSize,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -615,21 +830,21 @@ function LanguageTranslator() {
                 : '0 4px 12px rgba(16, 185, 129, 0.3)',
               animation: isListening ? 'pulse 1.5s infinite' : 'none'
             }}
-            title={isListening ? "Listening... Double-click to stop" : "Click to speak (Single click start, double-click stop)"}
+            title={isListening ? "Listening... Double-click to stop" : "Click to speak"}
           >
             {isListening ? (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+              <svg width={isMobile ? "18" : "24"} height={isMobile ? "18" : "24"} viewBox="0 0 24 24" fill="white">
                 <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" fill="none"/>
                 <rect x="9" y="9" width="6" height="6" fill="white" rx="1"/>
               </svg>
             ) : (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+              <svg width={isMobile ? "16" : "22"} height={isMobile ? "16" : "22"} viewBox="0 0 24 24" fill="white">
                 <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
               </svg>
             )}
           </button>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '11px', color: '#94a3b8' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '10px', color: '#94a3b8' }}>
           <span>{charCount} characters</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span style={{ 
@@ -651,15 +866,15 @@ function LanguageTranslator() {
         disabled={isTranslating || !inputText.trim()}
         style={{
           width: '100%',
-          padding: '16px',
+          padding: isMobile ? '12px' : '16px',
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           color: 'white',
           border: 'none',
           borderRadius: '60px',
           cursor: (!inputText.trim() || isTranslating) ? 'not-allowed' : 'pointer',
-          fontSize: '16px',
+          fontSize: isMobile ? '14px' : '16px',
           fontWeight: 'bold',
-          marginBottom: '20px',
+          marginBottom: isMobile ? '16px' : '20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -668,16 +883,6 @@ function LanguageTranslator() {
           opacity: (!inputText.trim() || isTranslating) ? 0.6 : 1,
           boxShadow: '0 4px 14px rgba(102, 126, 234, 0.4)'
         }}
-        onMouseEnter={(e) => {
-          if (inputText.trim() && !isTranslating) {
-            e.currentTarget.style.transform = 'translateY(-2px)'
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)'
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)'
-          e.currentTarget.style.boxShadow = '0 4px 14px rgba(102, 126, 234, 0.4)'
-        }}
       >
         {isTranslating ? (
           <>
@@ -685,8 +890,8 @@ function LanguageTranslator() {
           </>
         ) : (
           <>
-            <span>✨</span> Translate Now
-            <span>→</span>
+            <span>✨</span> {isMobile ? "Translate" : "Translate Now"}
+            {!isMobile && <span>→</span>}
           </>
         )}
       </button>
@@ -694,51 +899,42 @@ function LanguageTranslator() {
       {/* Output Section */}
       <div style={{
         background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-        borderRadius: '24px',
-        padding: '24px',
-        marginBottom: '24px',
-        border: '1px solid #e2e8f0'
+        borderRadius: sectionBorderRadius,
+        padding: sectionPadding,
+        marginBottom: isMobile ? '16px' : '24px',
+        border: '1px solid #e2e8f0',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '20px' }}>🔤</span>
-            <span style={{ fontWeight: '600', color: '#1e293b' }}>Translation</span>
-            <span style={{ fontSize: '12px', color: '#64748b', background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px' }}>
-              {flags[targetLanguage] || '🌐'} {getLanguageDisplay(targetLanguage)}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: isMobile ? '18px' : '20px' }}>🔤</span>
+            <span style={{ fontWeight: '600', color: '#1e293b', fontSize: isMobile ? '14px' : '16px' }}>Translation</span>
+            <span style={{ fontSize: '10px', color: '#64748b', background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px' }}>
+              {getFlag(targetLanguage)} {getLanguageDisplay(targetLanguage)}
             </span>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => copyToClipboard(translatedText, 'output')}
               disabled={!translatedText}
               style={{
-                padding: '6px 12px',
+                padding: '4px 12px',
                 background: 'white',
                 border: '1px solid #e2e8f0',
                 borderRadius: '20px',
                 cursor: translatedText ? 'pointer' : 'not-allowed',
-                fontSize: '12px',
+                fontSize: '11px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
                 opacity: translatedText ? 1 : 0.5,
                 transition: 'all 0.2s'
               }}
-              onMouseEnter={(e) => {
-                if (translatedText) {
-                  e.currentTarget.style.background = '#f1f5f9'
-                  e.currentTarget.style.transform = 'scale(1.02)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'white'
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
             >
               📋 {copyOutput ? 'Copied!' : 'Copy'}
             </button>
             
-            {/* Speaker Button */}
             <button
               onClick={() => {
                 if (translatedText && !isSpeaking) {
@@ -749,40 +945,27 @@ function LanguageTranslator() {
               }}
               disabled={!translatedText}
               style={{
-                padding: '8px 16px',
+                padding: '4px 12px',
                 background: isSpeaking 
                   ? 'linear-gradient(135deg, #8b5cf6, #7c3aed)' 
                   : 'white',
                 border: '1px solid #e2e8f0',
-                borderRadius: '24px',
+                borderRadius: '20px',
                 cursor: translatedText ? 'pointer' : 'not-allowed',
-                fontSize: '13px',
+                fontSize: '11px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '4px',
                 fontWeight: '500',
                 color: isSpeaking ? 'white' : '#1e293b',
                 transition: 'all 0.3s ease',
-                opacity: translatedText ? 1 : 0.5,
-                boxShadow: isSpeaking ? '0 4px 12px rgba(139, 92, 246, 0.3)' : 'none'
-              }}
-              onMouseEnter={(e) => {
-                if (translatedText && !isSpeaking) {
-                  e.currentTarget.style.background = '#f1f5f9'
-                  e.currentTarget.style.transform = 'scale(1.02)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSpeaking) {
-                  e.currentTarget.style.background = 'white'
-                  e.currentTarget.style.transform = 'scale(1)'
-                }
+                opacity: translatedText ? 1 : 0.5
               }}
               title={isSpeaking ? "Speaking... Click to stop" : "Listen to translation"}
             >
               {isSpeaking ? (
                 <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                     <rect x="6" y="4" width="4" height="16" rx="1"/>
                     <rect x="14" y="4" width="4" height="16" rx="1"/>
                   </svg>
@@ -790,7 +973,7 @@ function LanguageTranslator() {
                 </>
               ) : (
                 <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                   </svg>
                   Listen
@@ -801,88 +984,80 @@ function LanguageTranslator() {
         </div>
         <div style={{
           background: 'white',
-          padding: '20px',
+          padding: isMobile ? '16px' : '20px',
           borderRadius: '16px',
-          minHeight: '120px',
+          minHeight: isMobile ? '100px' : '120px',
           border: '1px solid #e2e8f0'
         }}>
           {translatedText ? (
-            <div style={{ fontSize: '16px', color: '#1e293b', lineHeight: '1.6' }}>{translatedText}</div>
+            <div style={{ fontSize: isMobile ? '14px' : '16px', color: '#1e293b', lineHeight: '1.6', wordBreak: 'break-word' }}>{translatedText}</div>
           ) : (
-            <div style={{ textAlign: 'center', color: '#94a3b8', padding: '24px' }}>
-              <span style={{ fontSize: '32px', display: 'block', marginBottom: '8px' }}>🌐</span>
-              Your translation will appear here
+            <div style={{ textAlign: 'center', color: '#94a3b8', padding: '16px' }}>
+              <span style={{ fontSize: isMobile ? '24px' : '32px', display: 'block', marginBottom: '8px' }}>🌐</span>
+              {!isSmallMobile && "Your translation will appear here"}
+              {isSmallMobile && "Translation appears here"}
             </div>
           )}
         </div>
       </div>
 
       {/* Quick Phrases */}
-      <div style={{
-        background: 'white',
-        borderRadius: '20px',
-        padding: '20px',
-        marginBottom: '20px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-          <span style={{ fontSize: '18px' }}>⚡</span>
-          <span style={{ fontWeight: '600', color: '#1e293b' }}>Quick Travel Phrases</span>
+      {!isSmallMobile && (
+        <div style={{
+          background: 'white',
+          borderRadius: isMobile ? '16px' : '20px',
+          padding: isMobile ? '16px' : '20px',
+          marginBottom: isMobile ? '16px' : '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ fontSize: isMobile ? '16px' : '18px' }}>⚡</span>
+            <span style={{ fontWeight: '600', color: '#1e293b', fontSize: isMobile ? '14px' : '16px' }}>Quick Travel Phrases</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {travelPhrases.slice(0, isMobile ? 8 : 12).map((phrase, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setInputText(phrase)
+                  setCharCount(phrase.length)
+                  translateText(phrase)
+                }}
+                style={{
+                  padding: isMobile ? '6px 12px' : '8px 16px',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '40px',
+                  cursor: 'pointer',
+                  fontSize: isMobile ? '11px' : '13px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {isMobile && phrase.length > 25 ? phrase.substring(0, 20) + '...' : phrase}
+              </button>
+            ))}
+          </div>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-          {travelPhrases.map((phrase, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                setInputText(phrase)
-                setCharCount(phrase.length)
-                translateText(phrase)
-              }}
-              style={{
-                padding: '8px 16px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '40px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#eef2ff'
-                e.currentTarget.style.borderColor = '#c7d2fe'
-                e.currentTarget.style.transform = 'translateY(-1px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#f8fafc'
-                e.currentTarget.style.borderColor = '#e2e8f0'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-            >
-              {phrase}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Features Footer */}
       <div style={{
         display: 'flex',
         justifyContent: 'center',
-        gap: '24px',
+        gap: isMobile ? '12px' : '24px',
         flexWrap: 'wrap',
-        padding: '16px',
+        padding: isMobile ? '12px' : '16px',
         background: '#f8fafc',
         borderRadius: '16px',
-        fontSize: '12px',
+        fontSize: isMobile ? '9px' : '12px',
         color: '#64748b'
       }}>
-        <span>🌍 {Object.keys(languages).length}+ Languages Worldwide</span>
-        <span>🔄 Translate between any language pair</span>
-        <span>🎤 Voice input (Single click start, double-click stop)</span>
-        <span>🔊 Text-to-speech (Click to listen, click again to stop)</span>
-        <span>📋 One-click copy</span>
-        <span>🏆 Complete global coverage</span>
+        <span>🌍 {totalLanguages}+ Languages</span>
+        {!isSmallMobile && <span>🔄 Translate any pair</span>}
+        <span>🎤 Voice input</span>
+        {!isSmallMobile && <span>🔊 Text-to-speech</span>}
+        <span>📋 Copy</span>
       </div>
 
       {/* CSS Animations */}
