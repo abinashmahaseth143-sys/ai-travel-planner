@@ -387,16 +387,23 @@ function LanguageTranslator() {
     
     recognition.onresult = (event) => {
       const spokenText = event.results[0][0].transcript
+      // ONLY set the input text - NO automatic translation
       setInputText(spokenText)
       setCharCount(spokenText.length)
-      translateText(spokenText)
+      // Clear previous translation when new voice input is added
+      setTranslatedText('')
+      console.log('Voice recognized:', spokenText)
     }
     
     recognition.start()
   }
 
-  const translateText = async (text) => {
-    if (!text.trim()) return
+  const translateText = async () => {
+    const text = inputText
+    if (!text.trim()) {
+      alert('Please enter or speak some text to translate')
+      return
+    }
     setIsTranslating(true)
     try {
       const source = sourceLanguage
@@ -418,7 +425,7 @@ function LanguageTranslator() {
     }
   }
 
-  const handleTranslate = () => translateText(inputText)
+  const handleTranslate = () => translateText()
 
   const swapLanguages = () => {
     const temp = sourceLanguage
@@ -447,6 +454,8 @@ function LanguageTranslator() {
   const handleInputChange = (e) => {
     setInputText(e.target.value)
     setCharCount(e.target.value.length)
+    // Clear translation when user types new text
+    setTranslatedText('')
   }
 
   const travelPhrases = [
@@ -830,7 +839,7 @@ function LanguageTranslator() {
                 : '0 4px 12px rgba(16, 185, 129, 0.3)',
               animation: isListening ? 'pulse 1.5s infinite' : 'none'
             }}
-            title={isListening ? "Listening... Double-click to stop" : "Click to speak"}
+            title={isListening ? "Listening... Double-click to stop" : "Click to speak (Single click start, double-click stop)"}
           >
             {isListening ? (
               <svg width={isMobile ? "18" : "24"} height={isMobile ? "18" : "24"} viewBox="0 0 24 24" fill="white">
@@ -860,7 +869,7 @@ function LanguageTranslator() {
         </div>
       </div>
 
-      {/* Translate Button */}
+      {/* Translate Button - Press this after speaking/typing */}
       <button
         onClick={handleTranslate}
         disabled={isTranslating || !inputText.trim()}
@@ -882,6 +891,16 @@ function LanguageTranslator() {
           transition: 'all 0.3s ease',
           opacity: (!inputText.trim() || isTranslating) ? 0.6 : 1,
           boxShadow: '0 4px 14px rgba(102, 126, 234, 0.4)'
+        }}
+        onMouseEnter={(e) => {
+          if (inputText.trim() && !isTranslating) {
+            e.currentTarget.style.transform = 'translateY(-2px)'
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)'
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)'
+          e.currentTarget.style.boxShadow = '0 4px 14px rgba(102, 126, 234, 0.4)'
         }}
       >
         {isTranslating ? (
@@ -994,14 +1013,13 @@ function LanguageTranslator() {
           ) : (
             <div style={{ textAlign: 'center', color: '#94a3b8', padding: '16px' }}>
               <span style={{ fontSize: isMobile ? '24px' : '32px', display: 'block', marginBottom: '8px' }}>🌐</span>
-              {!isSmallMobile && "Your translation will appear here"}
-              {isSmallMobile && "Translation appears here"}
+              {!isSmallMobile ? "Press 'Translate Now' to see translation" : "Press Translate to see result"}
             </div>
           )}
         </div>
       </div>
 
-      {/* Quick Phrases */}
+      {/* Quick Phrases - Only fill input, don't auto-translate */}
       {!isSmallMobile && (
         <div style={{
           background: 'white',
@@ -1022,7 +1040,7 @@ function LanguageTranslator() {
                 onClick={() => {
                   setInputText(phrase)
                   setCharCount(phrase.length)
-                  translateText(phrase)
+                  setTranslatedText('') // Clear previous translation
                 }}
                 style={{
                   padding: isMobile ? '6px 12px' : '8px 16px',
@@ -1037,6 +1055,9 @@ function LanguageTranslator() {
                 {isMobile && phrase.length > 25 ? phrase.substring(0, 20) + '...' : phrase}
               </button>
             ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '11px', color: '#94a3b8' }}>
+            💡 Click any phrase above, then press "Translate Now"
           </div>
         </div>
       )}
