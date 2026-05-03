@@ -149,12 +149,62 @@ function CreateTrip() {
         toast.success(`Destination set to ${spokenText}`);
       } 
       else if (field === 'days') {
-        const numberMatch = spokenText.match(/\d+/);
-        if (numberMatch) {
-          setDays(numberMatch[0]);
-          toast.success(`Days set to ${numberMatch[0]}`);
+        // ========== IMPROVED NUMBER PARSING FOR DAYS ==========
+        let daysValue = null;
+        const lowerText = spokenText.toLowerCase();
+        
+        // Remove common words to isolate the number
+        const cleanText = lowerText.replace(/day|days|for|about|around|approximately/gi, '').trim();
+        
+        // 1. Extract digits from text (e.g., "3 days" -> 3)
+        const digits = cleanText.match(/\d+/);
+        if (digits) {
+          daysValue = parseInt(digits[0]);
+        }
+        
+        // 2. If no digits, check for word numbers
+        if (!daysValue) {
+          const wordToNumber = {
+            'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+            'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+            'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14,
+            'fifteen': 15, 'sixteen': 16, 'seventeen': 17, 'eighteen': 18,
+            'nineteen': 19, 'twenty': 20, 'thirty': 30, 'forty': 40,
+            'fifty': 50, 'sixty': 60, 'seventy': 70, 'eighty': 80,
+            'ninety': 90, 'hundred': 100
+          };
+          
+          for (const [word, num] of Object.entries(wordToNumber)) {
+            if (lowerText.includes(word)) {
+              daysValue = num;
+              break;
+            }
+          }
+        }
+        
+        // 3. Check for combined words like "twenty five"
+        if (!daysValue && lowerText.includes('twenty')) {
+          if (lowerText.includes('five')) daysValue = 25;
+          else if (lowerText.includes('six')) daysValue = 26;
+          else if (lowerText.includes('seven')) daysValue = 27;
+          else if (lowerText.includes('eight')) daysValue = 28;
+          else if (lowerText.includes('nine')) daysValue = 29;
+          else daysValue = 20;
+        }
+        
+        if (!daysValue && lowerText.includes('thirty')) {
+          if (lowerText.includes('one')) daysValue = 31;
+          else daysValue = 30;
+        }
+        
+        // 4. Validate and set the value
+        if (daysValue && daysValue >= 1 && daysValue <= 30) {
+          setDays(daysValue.toString());
+          toast.success(`✅ ${daysValue} day${daysValue > 1 ? 's' : ''} set!`);
+        } else if (daysValue && daysValue > 30) {
+          toast.info("Maximum 30 days allowed. Please say a lower number (1-30).");
         } else {
-          toast.info("Please say a number like '3 days'");
+          toast.info("Please say a number like '5 days', 'seven', or 'twenty'");
         }
       }
       else if (field === 'budget') {
@@ -367,6 +417,9 @@ function CreateTrip() {
     return currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
   };
 
+  // Add listening indicator for days
+  const isDaysListening = isListening && listeningFor === 'days';
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -393,7 +446,7 @@ function CreateTrip() {
         boxSizing: 'border-box'
       }}>
         
-        {/* Header Section - Shows actual signed in user name */}
+        {/* Header Section */}
         <div style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
           padding: 'clamp(20px, 5vw, 32px) clamp(16px, 4vw, 24px)',
@@ -445,7 +498,6 @@ function CreateTrip() {
             Get a custom itinerary designed just for you
           </p>
           
-          {/* Show actual signed-in user name - DYNAMIC */}
           {currentUser && (
             <div style={{ 
               marginTop: '20px', 
@@ -468,7 +520,6 @@ function CreateTrip() {
             </div>
           )}
           
-          {/* Guest mode display */}
           {guestMode && !currentUser && (
             <div style={{ 
               marginTop: '20px', 
@@ -575,7 +626,7 @@ function CreateTrip() {
             </div>
           </div>
 
-          {/* Days Section */}
+          {/* Days Section - IMPROVED */}
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '28px' }}>📅</span>
@@ -611,7 +662,7 @@ function CreateTrip() {
                 onClick={() => startListening('days')}
                 onDoubleClick={stopListening}
                 style={micButtonStyle(isListening && listeningFor === 'days')}
-                title={isListening && listeningFor === 'days' ? "Listening... Double-click to stop" : "Click to speak number of days"}
+                title={isListening && listeningFor === 'days' ? "Listening... Double-click to stop" : "Click to speak number of days (e.g., '5 days' or 'seven')"}
               >
                 {isListening && listeningFor === 'days' ? (
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
@@ -625,6 +676,22 @@ function CreateTrip() {
                 )}
               </button>
             </div>
+            {/* Voice feedback indicator for days */}
+            {isDaysListening && (
+              <div style={{ 
+                marginTop: '8px', 
+                fontSize: '12px', 
+                color: '#10b981', 
+                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}>
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', animation: 'pulse 1s infinite' }}></span>
+                🎤 Listening for number of days... Say like "5 days" or "seven"
+              </div>
+            )}
           </div>
 
           {/* Budget Section */}
