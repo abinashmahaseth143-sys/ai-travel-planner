@@ -6,9 +6,8 @@ function Hotels({ trip }) {
   const [loading, setLoading] = useState(true);
   const [selectedHotel, setSelectedHotel] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const lastDestinationRef = useRef(null); // To prevent infinite loops
+  const lastDestinationRef = useRef(null);
 
-  // Get the actual destination from trip prop (stable check)
   const getDestination = () => {
     if (trip?.userSelection?.location) {
       const location = trip.userSelection.location;
@@ -22,11 +21,8 @@ function Hotels({ trip }) {
   useEffect(() => {
     const fetchHotels = async () => {
       const destination = getDestination();
-      // Only fetch if destination changed
       if (lastDestinationRef.current === destination) return;
       lastDestinationRef.current = destination;
-      
-      console.log("🔍 Searching hotels in:", destination);
       
       if (!destination) {
         setLoading(false);
@@ -35,9 +31,7 @@ function Hotels({ trip }) {
       
       setLoading(true);
       const results = await SearchHotels(destination);
-      console.log(`Found ${results.length} hotels in ${destination}`);
       
-      // Format hotels with real photos or fallback to valid placeholder
       const formattedHotels = results.map((hotel, index) => ({
         id: index + 1,
         name: hotel.displayName?.text || "Hotel",
@@ -51,7 +45,7 @@ function Hotels({ trip }) {
         description: hotel.editorialSummary?.text || "Comfortable hotel with great amenities",
         hotelImageUrl: hotel.photos?.[0]?.name 
           ? GetPlacePhoto(hotel.photos[0].name, 400, 300) 
-          : `https://picsum.photos/id/${(index % 100) + 1}/400/300`, // ✅ valid placeholder
+          : `https://picsum.photos/id/${(index % 100) + 1}/400/300`,
         bestPrice: Math.random() > 0.5
       }));
       
@@ -60,7 +54,7 @@ function Hotels({ trip }) {
     };
     
     fetchHotels();
-  }, [trip]); // Dependency remains, but the ref prevents re‑execution
+  }, [trip]);
 
   const openHotelDetails = (hotel) => {
     setSelectedHotel(hotel);
@@ -98,12 +92,17 @@ function Hotels({ trip }) {
   return (
     <>
       <div style={{ marginTop: '40px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>🏨 Hotel Recommendations in {destinationName}</h2>
           <span style={{ fontSize: '14px', color: '#10b981', fontWeight: 'bold' }}>✨ Real-time Prices & Photos</span>
         </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+        {/* ✅ FULLY RESPONSIVE GRID - for all screen sizes */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+          gap: '20px' 
+        }}>
           {hotels.map((hotel) => (
             <div 
               key={hotel.id}
@@ -142,7 +141,6 @@ function Hotels({ trip }) {
                 alt={hotel.name}
                 style={{ width: '100%', height: '180px', objectFit: 'cover', backgroundColor: '#f3f4f6' }}
                 onError={(e) => {
-                  // Fallback to a random placeholder image from picsum
                   e.target.src = `https://picsum.photos/id/${hotel.id % 100}/400/300`;
                 }}
               />

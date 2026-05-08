@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import PlaceCardItem from './PlaceCardItem'
 import { SearchAttractions, GetAttractionPhoto } from '../../service/GlobalApi'
 
-// Helper: safely format rating to a string with one decimal
 const formatRating = (rating) => {
   if (typeof rating === 'number') return rating.toFixed(1);
   if (typeof rating === 'string') {
@@ -63,66 +62,32 @@ function PlacesToVisit({ trip }) {
     return '$$';
   };
 
-  const generateRandomDayDistribution = (days) => {
-    const distribution = [];
-    const options = [3, 4, 5];
-    for (let i = 0; i < days; i++) {
-      const randomIndex = Math.floor(Math.random() * options.length);
-      distribution.push(options[randomIndex]);
-    }
-    return distribution;
-  };
-
-  const getTotalAttractionsNeeded = (distribution) => {
-    return distribution.reduce((sum, val) => sum + val, 0);
-  };
-
-  const adjustDistributionToAvailable = (distribution, availableCount) => {
-    let totalNeeded = getTotalAttractionsNeeded(distribution);
-    if (totalNeeded <= availableCount) return distribution;
-    let adjusted = [...distribution];
-    let currentTotal = totalNeeded;
-    while (currentTotal > availableCount) {
-      let reduced = false;
-      for (let i = 0; i < adjusted.length && currentTotal > availableCount; i++) {
-        if (adjusted[i] > 3) {
-          adjusted[i]--;
-          currentTotal--;
-          reduced = true;
-        }
-      }
-      if (!reduced) break;
-    }
-    return adjusted;
-  };
-
+  // ✅ ITINERARY GENERATION WITH PROPER LIMITS
   const generateItinerary = () => {
     let availableAttractions = [...filteredAttractions];
-    let distribution = generateRandomDayDistribution(numberOfDays);
-    let totalNeeded = getTotalAttractionsNeeded(distribution);
-    const maxAttractions = Math.min(availableAttractions.length, 35);
-    if (availableAttractions.length > maxAttractions) {
-      availableAttractions = availableAttractions.slice(0, maxAttractions);
+    const daysNum = numberOfDays;
+    
+    let maxPerDay = daysNum === 1 ? 5 : daysNum <= 3 ? 4 : 3;
+    const maxTotal = daysNum * maxPerDay;
+    
+    if (availableAttractions.length > maxTotal) {
+      availableAttractions = availableAttractions.slice(0, maxTotal);
     }
-    distribution = adjustDistributionToAvailable(distribution, availableAttractions.length);
-    totalNeeded = getTotalAttractionsNeeded(distribution);
-    if (availableAttractions.length > totalNeeded) {
-      availableAttractions = availableAttractions.slice(0, totalNeeded);
-    }
+    
     const itinerary = [];
-    let attractionIndex = 0;
-    for (let day = 0; day < distribution.length; day++) {
-      const placesForDay = distribution[day];
+    let index = 0;
+    for (let day = 1; day <= daysNum; day++) {
       const dayAttractions = [];
-      for (let i = 0; i < placesForDay && attractionIndex < availableAttractions.length; i++) {
-        dayAttractions.push(availableAttractions[attractionIndex]);
-        attractionIndex++;
+      for (let i = 0; i < maxPerDay && index < availableAttractions.length; i++) {
+        dayAttractions.push(availableAttractions[index]);
+        index++;
       }
       if (dayAttractions.length > 0) {
-        itinerary.push({ day: day + 1, places: dayAttractions, count: dayAttractions.length });
+        itinerary.push({ day, places: dayAttractions, count: dayAttractions.length });
       }
     }
-    return { itinerary, totalShown: attractionIndex, distribution };
+    
+    return { itinerary, totalShown: index };
   };
 
   useEffect(() => {
@@ -134,6 +99,7 @@ function PlacesToVisit({ trip }) {
       }
       setLoading(true);
       const allResults = [];
+      
       for (const category of categories) {
         if (category.id === "all") continue;
         try {
@@ -152,6 +118,7 @@ function PlacesToVisit({ trip }) {
           console.error(`Error fetching ${category.name}:`, error);
         }
       }
+      
       const generalResponse = await SearchAttractions(`best tourist attractions in ${destination}`);
       const generalResults = generalResponse.slice(0, 3).map((place) => ({
         ...place,
@@ -160,6 +127,7 @@ function PlacesToVisit({ trip }) {
         categoryIcon: "⭐"
       }));
       allResults.push(...generalResults);
+      
       const uniqueResults = [];
       const seenNames = new Set();
       for (const place of allResults) {
@@ -169,6 +137,7 @@ function PlacesToVisit({ trip }) {
           uniqueResults.push(place);
         }
       }
+      
       const formattedAttractions = uniqueResults.map((place, index) => {
         const photoName = place.photos?.[0]?.name;
         const timeSlots = [
@@ -176,9 +145,9 @@ function PlacesToVisit({ trip }) {
           "1:00 PM - 4:00 PM", "2:00 PM - 5:00 PM", "3:00 PM - 6:00 PM"
         ];
         const travelTimes = ["10 min", "15 min", "20 min", "25 min", "30 min"];
-        // ✅ SAFELY FORMAT RATING
         const ratingNumber = place.rating !== undefined && place.rating !== null ? parseFloat(place.rating) : 4.5;
         const reviewCountNumber = place.userRatingCount !== undefined && place.userRatingCount !== null ? parseInt(place.userRatingCount) : 0;
+        
         return {
           id: index + 1,
           placeName: place.displayName?.text || "Attraction",
@@ -195,12 +164,14 @@ function PlacesToVisit({ trip }) {
           placeImageUrl: photoName ? GetAttractionPhoto(photoName, 500, 300) : null
         };
       });
+      
       const sortedByRating = [...formattedAttractions].sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
       setAttractions(sortedByRating);
       setLoading(false);
     };
+    
     fetchAllAttractions();
-  }, [trip]);
+  }, [trip?.userSelection?.location]);
 
   const filteredAttractions = selectedCategory === "all" 
     ? attractions 
@@ -216,22 +187,9 @@ function PlacesToVisit({ trip }) {
   if (loading) {
     return (
       <div style={{ marginTop: '40px', textAlign: 'center' }}>
-        <div style={{ 
-          display: 'inline-block', 
-          width: '40px', 
-          height: '40px', 
-          border: '3px solid #e2e8f0',
-          borderTopColor: '#667eea',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
+        <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#667eea', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <p style={{ marginTop: '16px', color: '#64748b' }}>Loading real attractions from Google Places...</p>
-        <style>{`
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -241,14 +199,12 @@ function PlacesToVisit({ trip }) {
       <div style={{ marginTop: '40px', textAlign: 'center', padding: '40px' }}>
         <span style={{ fontSize: '48px' }}>🗺️</span>
         <h3 style={{ marginTop: '16px', color: '#1f2937' }}>No attractions found</h3>
-        <p style={{ color: '#6b7280', marginTop: '8px' }}>
-          Try searching for a different destination or adjust your search.
-        </p>
+        <p style={{ color: '#6b7280', marginTop: '8px' }}>Try searching for a different destination or adjust your search.</p>
       </div>
     );
   }
 
-  const { itinerary, totalShown, distribution } = generateItinerary();
+  const { itinerary, totalShown } = generateItinerary();
 
   return (
     <div style={{ marginTop: '40px' }}>

@@ -3,7 +3,6 @@ import axios from "axios";
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchText';
 const API_KEY = import.meta.env.VITE_GOOGLE_PLACE_API_KEY;
 
-// ✅ SIMPLIFIED FIELD MASK – no primaryType, editorialSummary, priceLevel
 const config = {
     headers: {
         'Content-Type': 'application/json',
@@ -19,9 +18,27 @@ export const GetPlacePhoto = (photoName, maxWidth = 1200, maxHeight = 400) => {
     return `https://places.googleapis.com/v1/${photoName}/media?key=${API_KEY}&maxWidthPx=${maxWidth}&maxHeightPx=${maxHeight}`;
 };
 
-// ========== MOCK DATA (returns NUMBER ratings, not strings) ==========
+// ✅ Extract location from natural language queries (e.g., "museums in Tokyo" → "Tokyo")
+const extractLocationFromQuery = (query) => {
+    let location = query;
+    const prefixes = [
+        "hotels in ", "tourist attractions in ", "museums in ", "national parks in ",
+        "landmarks in ", "cultural sites in ", "nature in ", "entertainment in ",
+        "beaches in ", "shopping in ", "famous restaurants in ", "nightlife in ",
+        "zoos in ", "sports in ", "cinemas in ", "best tourist attractions in "
+    ];
+    for (const prefix of prefixes) {
+        if (location.toLowerCase().startsWith(prefix)) {
+            location = location.slice(prefix.length);
+            break;
+        }
+    }
+    return location.trim() || "Tokyo";
+};
+
+// ✅ Mock data generator that uses the actual destination
 const getMockPlaces = (query, type = 'attraction', count = 8) => {
-    const location = query.replace(/hotels in |tourist attractions in /gi, '').trim();
+    const location = extractLocationFromQuery(query);
     const mockNames = {
         attraction: [
             `${location} Central Square`,
@@ -49,7 +66,7 @@ const getMockPlaces = (query, type = 'attraction', count = 8) => {
     return Array.from({ length: Math.min(count, names.length) }, (_, i) => ({
         displayName: { text: names[i] },
         formattedAddress: `${names[i]}, ${location}`,
-        rating: Math.random() * 2 + 3,  // ✅ number, e.g., 4.2
+        rating: Math.random() * 2 + 3,
         userRatingCount: Math.floor(Math.random() * 500) + 50,
         photos: [{ name: `mock-photo-${i}` }]
     }));
@@ -75,7 +92,7 @@ export const SearchDestination = async (query) => {
             return {
                 name: place.displayName?.text || query,
                 address: place.formattedAddress,
-                rating: place.rating,  // number
+                rating: place.rating,
                 photo: place.photos?.[0]?.name ? GetPlacePhoto(place.photos[0].name, 1200, 400) : null,
                 type: 'city'
             };
@@ -93,13 +110,13 @@ export const SearchHotels = async (location) => {
         return response.data?.places || [];
     } catch (error) {
         console.warn(`Mock hotels for ${location}`);
-        return getMockPlaces(location, 'hotel', 10);
+        return getMockPlaces(`hotels in ${location}`, 'hotel', 10);
     }
 };
 
 export const SearchAttractions = async (location) => {
     try {
-        const response = await GetPlaceDetails({ textQuery: `tourist attractions in ${location}`, pageSize: 15, languageCode: 'en' });
+        const response = await GetPlaceDetails({ textQuery: location, pageSize: 15, languageCode: 'en' });
         return response.data?.places || [];
     } catch (error) {
         console.warn(`Mock attractions for ${location}`);

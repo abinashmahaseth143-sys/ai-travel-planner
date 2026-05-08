@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useLoadScript, Autocomplete } from '@react-google-maps/api'
 import { Input } from '@/components/ui/input'
 import { SelectTravelesList, SelectBudgetOptions } from '../constants/options'
 import { toast } from 'sonner'
@@ -12,15 +11,12 @@ import { useNavigate } from 'react-router-dom'
 import WeatherCountryAdvisor from '../components/WeatherCountryAdvisor'
 import { generateTrip } from '../lib/aiService'
 
-const libraries = ['places'];
-
 function CreateTrip() {
   const [place, setPlace] = useState(null);
   const [days, setDays] = useState('');
   const [selectedTraveler, setSelectedTraveler] = useState(null);
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [autocomplete, setAutocomplete] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [guestTripsRemaining, setGuestTripsRemaining] = useState(2);
@@ -61,28 +57,6 @@ function CreateTrip() {
     });
     return () => unsubscribe();
   }, [navigate, guestTripsRemaining]);
-
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: "AIzaSyAnJwDgg2l5yJJUPL69v4qtS0uzoYcFpj0",
-    libraries,
-  });
-
-  const onLoad = (autocompleteInstance) => {
-    setAutocomplete(autocompleteInstance);
-  };
-
-  const onPlaceChanged = () => {
-    if (autocomplete !== null) {
-      const selectedPlace = autocomplete.getPlace();
-      if (selectedPlace?.formatted_address) {
-        setPlace({
-          label: selectedPlace.formatted_address,
-          value: selectedPlace
-        });
-        console.log("Selected place:", selectedPlace);
-      }
-    }
-  };
 
   const stopListening = () => {
     if (recognitionRef) {
@@ -142,7 +116,8 @@ function CreateTrip() {
           label: spokenText,
           value: { formatted_address: spokenText }
         });
-        const inputElement = document.querySelector('input[placeholder*="Search"]');
+        // Update the input field manually
+        const inputElement = document.getElementById('destination-input');
         if (inputElement) {
           inputElement.value = spokenText;
         }
@@ -223,7 +198,7 @@ function CreateTrip() {
     });
     toast.success(`Selected ${countryName}! Now set your trip details.`);
     
-    const inputElement = document.querySelector('input[placeholder*="Search"]');
+    const inputElement = document.getElementById('destination-input');
     if (inputElement) {
       inputElement.value = countryName;
     }
@@ -283,7 +258,6 @@ function CreateTrip() {
     }
   };
 
-  // FIX #4: Better visible notification
   const showErrorNotification = (message) => {
     toast.error(message, {
       duration: 4000,
@@ -372,10 +346,6 @@ function CreateTrip() {
     );
   }
 
-  if (!isLoaded) {
-    return <div style={{ textAlign: 'center', marginTop: '100px' }}>Loading Google Maps...</div>;
-  }
-
   const guestMode = localStorage.getItem('guestMode') === 'true';
   const guestTripsGenerated = parseInt(localStorage.getItem('guestTripsGenerated') || '0');
   const remainingTrips = 2 - guestTripsGenerated;
@@ -408,7 +378,6 @@ function CreateTrip() {
   const isLargeScreen = windowWidth > 1400;
 
   return (
-    // FIX #1: Updated main container for larger screens
     <div style={{
       minHeight: '100vh',
       width: '100%',
@@ -433,7 +402,6 @@ function CreateTrip() {
         }}
       />
       
-      {/* Main Content Container */}
       <div style={{
         maxWidth: isLargeScreen ? '1400px' : '1200px',
         width: '100%',
@@ -571,7 +539,7 @@ function CreateTrip() {
             borderRadius: '2px'
           }} />
           
-          {/* Destination Section */}
+          {/* Destination Section - FIXED: Simple text input (no Google Places) */}
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '28px' }}>📍</span>
@@ -579,31 +547,32 @@ function CreateTrip() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: '200px' }}>
-                <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
-                  <input
-                    type="text"
-                    placeholder="Search for any city, country, or place..."
-                    style={{
-                      width: '100%',
-                      padding: '14px 16px',
-                      fontSize: '15px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '16px',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      transition: 'all 0.2s ease',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#667eea';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#e5e7eb';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                  />
-                </Autocomplete>
+                <input
+                  id="destination-input"
+                  type="text"
+                  placeholder="Enter city or country (e.g., Paris, Japan, Morocco)"
+                  value={place?.label || ''}
+                  onChange={(e) => setPlace({ label: e.target.value, value: null })}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    fontSize: '15px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '16px',
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#667eea';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
               </div>
               <button
                 onClick={() => startListening('destination')}
