@@ -208,8 +208,9 @@ function InfoSection({ trip, onTripUpdate }) {
     }
   }, [trip]);
 
+  // ========== SHARE FUNCTIONS (ALL PLATFORMS EXCEPT COPY LINK) ==========
   const getShareText = () => {
-    return `✈️ Trip to ${getLocation()}!\n\n📅 Duration: ${getDays()} day${getDays() > 1 ? 's' : ''}\n💰 Budget: ${getBudget()}\n👥 Travelers: ${getTravelers()}\n\nCheck out my itinerary:`;
+    return `✈️ Trip to ${getLocation()}!\n📅 Duration: ${getDays()} day${getDays() > 1 ? 's' : ''}\n💰 Budget: ${getBudget()}\n👥 Travelers: ${getTravelers()}\n\nCheck out my itinerary:`;
   };
 
   const shareOnWhatsApp = () => {
@@ -219,16 +220,50 @@ function InfoSection({ trip, onTripUpdate }) {
     setShowShareOptions(false);
   };
 
-  const copyToClipboard = async () => {
-    const message = `${getShareText()}\n\n${window.location.href}`;
+  const shareOnTelegram = () => {
+    const text = `${getShareText()}`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    setShowShareOptions(false);
+  };
+
+  const shareOnFacebook = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+    setShowShareOptions(false);
+  };
+
+  const shareOnTwitter = () => {
+    const text = `✈️ Trip to ${getLocation()}! ${getDays()} days, ${getBudget()} budget.`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+    setShowShareOptions(false);
+  };
+
+  const shareOnLinkedIn = () => {
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+    setShowShareOptions(false);
+  };
+
+  const shareByEmail = () => {
+    const subject = `My trip to ${getLocation()}`;
+    const body = `I planned a trip to ${getLocation()} for ${getDays()} days with a ${getBudget()} budget for ${getTravelers()}. See details:\n\n${window.location.href}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setShowShareOptions(false);
+  };
+
+  const shareOnInstagram = async () => {
+    // Instagram doesn't have a direct share URL, so copy the link and prompt
     try {
-      await navigator.clipboard.writeText(message);
-      toast.success("Link copied to clipboard! 📋");
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied! Open Instagram and paste it.");
     } catch (err) {
-      toast.error("Failed to copy");
+      toast.error("Failed to copy link");
     }
     setShowShareOptions(false);
   };
+  // ========== END SHARE FUNCTIONS ==========
 
   const handleSaveEdit = async () => {
     if (!trip?.id) return;
@@ -708,6 +743,7 @@ function InfoSection({ trip, onTripUpdate }) {
             🥂 No. Of Traveler: {getTravelers()}
           </div>
           
+          {/* SHARE DROPDOWN - ALL PLATFORMS EXCEPT COPY LINK */}
           <div className="share-container" style={{ position: 'relative' }}>
             <button 
               onClick={() => setShowShareOptions(!showShareOptions)}
@@ -741,11 +777,26 @@ function InfoSection({ trip, onTripUpdate }) {
                 overflow: 'hidden'
               }}>
                 <div style={{ padding: '8px 0' }}>
-                  <button onClick={shareOnWhatsApp} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}>
+                  <button onClick={shareOnWhatsApp} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
                     <span style={{ fontSize: '20px', marginRight: '10px' }}>💬</span> WhatsApp
                   </button>
-                  <button onClick={copyToClipboard} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}>
-                    <span style={{ fontSize: '20px', marginRight: '10px' }}>📋</span> Copy Link
+                  <button onClick={shareOnTelegram} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+                    <span style={{ fontSize: '20px', marginRight: '10px' }}>📨</span> Telegram
+                  </button>
+                  <button onClick={shareOnFacebook} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+                    <span style={{ fontSize: '20px', marginRight: '10px' }}>f</span> Facebook
+                  </button>
+                  <button onClick={shareOnInstagram} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+                    <span style={{ fontSize: '20px', marginRight: '10px' }}>📷</span> Instagram
+                  </button>
+                  <button onClick={shareOnTwitter} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+                    <span style={{ fontSize: '20px', marginRight: '10px' }}>𝕏</span> Twitter
+                  </button>
+                  <button onClick={shareByEmail} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+                    <span style={{ fontSize: '20px', marginRight: '10px' }}>✉️</span> Email
+                  </button>
+                  <button onClick={shareOnLinkedIn} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+                    <span style={{ fontSize: '20px', marginRight: '10px' }}>in</span> LinkedIn
                   </button>
                 </div>
               </div>

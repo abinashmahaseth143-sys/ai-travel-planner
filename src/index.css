@@ -1,45 +1,180 @@
 /* ============================================
-   FORCE HORIZONTAL SCROLL FOR COUNTRY LIST
+   RESPONSIVE DESIGN - ALL DEVICES
    ============================================ */
 
-/* Target the container that holds all country cards (likely a ul or div) */
-ul:has(li),
-.country-list,
-.destination-list,
-[class*="country"]:has(li) {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
+/* Base responsive settings */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile First Approach */
+body {
+  overflow-x: auto;
+  width: 100%;
+  position: relative;
+}
+
+/* ============================================
+   FIX FOR LARGER SCREENS (1440px and above)
+   ============================================ */
+
+/* Limit maximum width for better readability */
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* For screens larger than 1440px */
+@media (min-width: 1440px) {
+  /* Center and limit content width */
+  .main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  /* Adjust card grid for large screens */
+  .countries-grid,
+  .hotels-grid,
+  .places-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 24px !important;
+  }
+  
+  /* Make trip cards more compact on large screens */
+  .trip-card {
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  
+  /* Center main container */
+  #root > div {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+
+/* For ultra-wide screens (1920px+) */
+@media (min-width: 1920px) {
+  .countries-grid,
+  .hotels-grid,
+  .places-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* ============================================
+   RESPONSIVE GRID SYSTEMS
+   ============================================ */
+
+/* Countries Grid */
+.countries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  overflow-x: visible;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .countries-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .countries-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Hotels Grid */
+.hotels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  overflow-x: visible;
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .hotels-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Places Grid */
+.places-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  overflow-x: visible;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .places-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* ============================================
+   HORIZONTAL SCROLL FOR COUNTRY CARDS
+   ============================================ */
+
+.country-container,
+[class*="country-grid"],
+[class*="countries-list"] {
   overflow-x: auto !important;
   overflow-y: visible !important;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 20px !important;
-  padding: 20px 16px !important;
-  list-style: none !important;
+  padding: 16px !important;
   margin: 0 !important;
+  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
 
-/* Target each country item (li) */
-li:has(.country-card),
-.country-item,
-[class*="country-card"],
-li:has(img) {
+.country-card {
   flex: 0 0 auto !important;
-  min-width: 200px !important;
-  width: 200px !important;
-  list-style: none !important;
+  min-width: 220px !important;
+  width: 220px !important;
+  max-width: 220px !important;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   display: block !important;
+  overflow: visible !important;
 }
 
-/* Target any parent section containing these cards */
-section:has(h2:contains("Best Countries")),
-div:has(h2:contains("Best Countries")) {
-  overflow-x: auto !important;
+@media (max-width: 768px) {
+  .country-card {
+    min-width: 200px !important;
+    width: 200px !important;
+    max-width: 200px !important;
+  }
 }
 
-/* Style the scrollbar */
+/* Scrollbar Styling */
 ::-webkit-scrollbar {
+  width: 6px;
   height: 6px;
 }
 
@@ -53,7 +188,42 @@ div:has(h2:contains("Best Countries")) {
   border-radius: 10px;
 }
 
-/* Keep page fixed */
-body {
-  overflow-x: hidden !important;
+::-webkit-scrollbar-thumb:hover {
+  background: #5a67d8;
+}
+
+/* ============================================
+   TOAST NOTIFICATION STYLES (Fix #4)
+   ============================================ */
+.sonner-toast {
+  animation: slideIn 0.3s ease !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  padding: 16px 20px !important;
+  border-radius: 12px !important;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   IMAGE LOADING ANIMATION (Fix #6)
+   ============================================ */
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.image-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
 }

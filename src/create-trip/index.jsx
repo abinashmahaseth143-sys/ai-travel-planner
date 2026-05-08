@@ -149,31 +149,18 @@ function CreateTrip() {
         toast.success(`Destination set to ${spokenText}`);
       } 
       else if (field === 'days') {
-        // ========== IMPROVED NUMBER PARSING FOR DAYS ==========
         let daysValue = null;
         const lowerText = spokenText.toLowerCase();
-        
-        // Remove common words to isolate the number
         const cleanText = lowerText.replace(/day|days|for|about|around|approximately/gi, '').trim();
-        
-        // 1. Extract digits from text (e.g., "3 days" -> 3)
         const digits = cleanText.match(/\d+/);
         if (digits) {
           daysValue = parseInt(digits[0]);
         }
-        
-        // 2. If no digits, check for word numbers
         if (!daysValue) {
           const wordToNumber = {
-            'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
-            'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
-            'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14,
-            'fifteen': 15, 'sixteen': 16, 'seventeen': 17, 'eighteen': 18,
-            'nineteen': 19, 'twenty': 20, 'thirty': 30, 'forty': 40,
-            'fifty': 50, 'sixty': 60, 'seventy': 70, 'eighty': 80,
-            'ninety': 90, 'hundred': 100
+            'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+            'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10
           };
-          
           for (const [word, num] of Object.entries(wordToNumber)) {
             if (lowerText.includes(word)) {
               daysValue = num;
@@ -181,30 +168,13 @@ function CreateTrip() {
             }
           }
         }
-        
-        // 3. Check for combined words like "twenty five"
-        if (!daysValue && lowerText.includes('twenty')) {
-          if (lowerText.includes('five')) daysValue = 25;
-          else if (lowerText.includes('six')) daysValue = 26;
-          else if (lowerText.includes('seven')) daysValue = 27;
-          else if (lowerText.includes('eight')) daysValue = 28;
-          else if (lowerText.includes('nine')) daysValue = 29;
-          else daysValue = 20;
-        }
-        
-        if (!daysValue && lowerText.includes('thirty')) {
-          if (lowerText.includes('one')) daysValue = 31;
-          else daysValue = 30;
-        }
-        
-        // 4. Validate and set the value
         if (daysValue && daysValue >= 1 && daysValue <= 30) {
           setDays(daysValue.toString());
           toast.success(`✅ ${daysValue} day${daysValue > 1 ? 's' : ''} set!`);
         } else if (daysValue && daysValue > 30) {
           toast.info("Maximum 30 days allowed. Please say a lower number (1-30).");
         } else {
-          toast.info("Please say a number like '5 days', 'seven', or 'twenty'");
+          toast.info("Please say a number like '5 days' or 'seven'");
         }
       }
       else if (field === 'budget') {
@@ -313,9 +283,27 @@ function CreateTrip() {
     }
   };
 
+  // FIX #4: Better visible notification
+  const showErrorNotification = (message) => {
+    toast.error(message, {
+      duration: 4000,
+      position: 'top-center',
+      style: {
+        background: '#ef4444',
+        color: 'white',
+        padding: '16px 24px',
+        fontSize: '16px',
+        fontWeight: 'bold',
+        borderRadius: '12px',
+        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.2)'
+      },
+      icon: '⚠️'
+    });
+  };
+
   const handleGenerateTrip = async () => {
     if (!place || !days || !selectedTraveler || !selectedBudget) {
-      toast("Please fill all details")
+      showErrorNotification("⚠️ Please fill in all details before generating your trip!");
       return
     }
 
@@ -324,7 +312,7 @@ function CreateTrip() {
     const maxFreeTrips = 2;
     
     if (guestMode && guestTripsGenerated >= maxFreeTrips) {
-      toast.error(`You've reached the free limit of ${maxFreeTrips} trips! Please sign in to create more.`);
+      showErrorNotification(`You've reached the free limit of ${maxFreeTrips} trips! Please sign in to create more.`);
       navigate('/login');
       return;
     }
@@ -362,7 +350,7 @@ function CreateTrip() {
     } catch (error) {
       console.error("Error:", error)
       toast.dismiss(loadingToast);
-      toast.error("Failed to generate itinerary. Please try again.")
+      showErrorNotification("Failed to generate itinerary. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -411,32 +399,43 @@ function CreateTrip() {
     animation: isActive ? 'pulse 1.5s infinite' : 'none'
   });
 
-  // Get display name for signed in user
   const getUserDisplayName = () => {
     if (!currentUser) return '';
     return currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
   };
 
-  // Add listening indicator for days
   const isDaysListening = isListening && listeningFor === 'days';
+  const isLargeScreen = windowWidth > 1400;
 
   return (
+    // FIX #1: Updated main container for larger screens
     <div style={{
       minHeight: '100vh',
       width: '100%',
-      maxWidth: '100%',
+      maxWidth: '1400px',
+      margin: '0 auto',
       overflowX: 'hidden',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '40px 20px',
       position: 'relative',
-      margin: 0,
       boxSizing: 'border-box'
     }}>
-      <Toaster />
+      <Toaster 
+        position="top-center"
+        richColors
+        expand={true}
+        toastOptions={{
+          style: {
+            fontSize: '15px',
+            padding: '16px 20px',
+            borderRadius: '12px',
+          }
+        }}
+      />
       
       {/* Main Content Container */}
       <div style={{
-        maxWidth: '1200px',
+        maxWidth: isLargeScreen ? '1400px' : '1200px',
         width: '100%',
         margin: '0 auto',
         background: 'rgba(255, 255, 255, 0.98)',
@@ -626,7 +625,7 @@ function CreateTrip() {
             </div>
           </div>
 
-          {/* Days Section - IMPROVED */}
+          {/* Days Section */}
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '28px' }}>📅</span>
@@ -676,7 +675,6 @@ function CreateTrip() {
                 )}
               </button>
             </div>
-            {/* Voice feedback indicator for days */}
             {isDaysListening && (
               <div style={{ 
                 marginTop: '8px', 

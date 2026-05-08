@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { SearchHotels, GetPlacePhoto } from '../../service/GlobalApi'
 
-function Hotels({ trip }) {  // ← Add trip as prop
+function Hotels({ trip }) {
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedHotel, setSelectedHotel] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const lastDestinationRef = useRef(null); // To prevent infinite loops
 
-  // Get the actual destination from trip prop
+  // Get the actual destination from trip prop (stable check)
   const getDestination = () => {
-    // Get location from trip prop
     if (trip?.userSelection?.location) {
       const location = trip.userSelection.location;
       if (typeof location === 'string') return location;
       return location.label || location.description;
     }
-    // Fallback to localStorage if trip not available
     const userSelection = JSON.parse(localStorage.getItem('userSelection') || '{}');
     return userSelection.location || "USA";
   };
@@ -23,7 +22,11 @@ function Hotels({ trip }) {  // ← Add trip as prop
   useEffect(() => {
     const fetchHotels = async () => {
       const destination = getDestination();
-      console.log("🔍 Searching hotels in:", destination); // Debug log
+      // Only fetch if destination changed
+      if (lastDestinationRef.current === destination) return;
+      lastDestinationRef.current = destination;
+      
+      console.log("🔍 Searching hotels in:", destination);
       
       if (!destination) {
         setLoading(false);
@@ -32,9 +35,9 @@ function Hotels({ trip }) {  // ← Add trip as prop
       
       setLoading(true);
       const results = await SearchHotels(destination);
-      console.log(`Found ${results.length} hotels in ${destination}`); // Debug log
+      console.log(`Found ${results.length} hotels in ${destination}`);
       
-      // Format hotels with real photos
+      // Format hotels with real photos or fallback to valid placeholder
       const formattedHotels = results.map((hotel, index) => ({
         id: index + 1,
         name: hotel.displayName?.text || "Hotel",
@@ -46,7 +49,9 @@ function Hotels({ trip }) {  // ← Add trip as prop
         discountedPrice: `$${Math.floor(Math.random() * 150) + 80}`,
         discount: `${Math.floor(Math.random() * 30) + 10}% OFF`,
         description: hotel.editorialSummary?.text || "Comfortable hotel with great amenities",
-        hotelImageUrl: hotel.photos?.[0]?.name ? GetPlacePhoto(hotel.photos[0].name, 400, 300) : "/placeholder.jpg",
+        hotelImageUrl: hotel.photos?.[0]?.name 
+          ? GetPlacePhoto(hotel.photos[0].name, 400, 300) 
+          : `https://picsum.photos/id/${(index % 100) + 1}/400/300`, // ✅ valid placeholder
         bestPrice: Math.random() > 0.5
       }));
       
@@ -55,7 +60,7 @@ function Hotels({ trip }) {  // ← Add trip as prop
     };
     
     fetchHotels();
-  }, [trip]); // ← Add trip as dependency
+  }, [trip]); // Dependency remains, but the ref prevents re‑execution
 
   const openHotelDetails = (hotel) => {
     setSelectedHotel(hotel);
@@ -73,16 +78,19 @@ function Hotels({ trip }) {  // ← Add trip as prop
     return (
       <div style={{ marginTop: '40px', textAlign: 'center' }}>
         <h2>🏨 Hotel Recommendations in {destinationName}</h2>
+        <div style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#667eea', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '20px auto' }} />
         <p>Loading hotels...</p>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   if (hotels.length === 0) {
     return (
-      <div style={{ marginTop: '40px', textAlign: 'center' }}>
-        <h2>🏨 Hotel Recommendations in {destinationName}</h2>
-        <p>No hotels found in {destinationName}. Try searching for a different location.</p>
+      <div style={{ marginTop: '40px', textAlign: 'center', padding: '40px', background: '#f8fafc', borderRadius: '16px' }}>
+        <span style={{ fontSize: '48px' }}>🏨</span>
+        <h3 style={{ marginTop: '16px' }}>No hotels found in {destinationName}</h3>
+        <p style={{ color: '#6b7280', marginTop: '8px' }}>Try searching for a city center or popular area.</p>
       </div>
     );
   }
@@ -91,19 +99,11 @@ function Hotels({ trip }) {  // ← Add trip as prop
     <>
       <div style={{ marginTop: '40px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>
-            🏨 Hotel Recommendations in {destinationName}
-          </h2>
-          <span style={{ fontSize: '14px', color: '#10b981', fontWeight: 'bold' }}>
-            ✨ Real-time Prices & Photos
-          </span>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>🏨 Hotel Recommendations in {destinationName}</h2>
+          <span style={{ fontSize: '14px', color: '#10b981', fontWeight: 'bold' }}>✨ Real-time Prices & Photos</span>
         </div>
         
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '20px'
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
           {hotels.map((hotel) => (
             <div 
               key={hotel.id}
@@ -140,38 +140,21 @@ function Hotels({ trip }) {  // ← Add trip as prop
               <img 
                 src={hotel.hotelImageUrl}
                 alt={hotel.name}
-                style={{ 
-                  width: '100%', 
-                  height: '180px', 
-                  objectFit: 'cover',
-                  backgroundColor: '#f3f4f6'
-                }}
+                style={{ width: '100%', height: '180px', objectFit: 'cover', backgroundColor: '#f3f4f6' }}
                 onError={(e) => {
-                  e.target.src = "/placeholder.jpg";
+                  // Fallback to a random placeholder image from picsum
+                  e.target.src = `https://picsum.photos/id/${hotel.id % 100}/400/300`;
                 }}
               />
               
               <div style={{ padding: '16px' }}>
-                <div style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '8px' }}>
-                  {hotel.name}
-                </div>
-                
-                <div style={{ fontSize: '14px', color: '#f59e0b', marginBottom: '8px' }}>
-                  ⭐ {hotel.rating} ★★★★★ ({hotel.reviews} reviews)
-                </div>
-                
+                <div style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '8px' }}>{hotel.name}</div>
+                <div style={{ fontSize: '14px', color: '#f59e0b', marginBottom: '8px' }}>⭐ {hotel.rating} ({hotel.reviews} reviews)</div>
                 <div style={{ marginBottom: '8px' }}>
-                  <span style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'line-through' }}>
-                    {hotel.originalPrice}
-                  </span>
-                  <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444', marginLeft: '8px' }}>
-                    {hotel.discountedPrice}
-                  </span>
-                  <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '4px' }}>
-                    / night
-                  </span>
+                  <span style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'line-through' }}>{hotel.originalPrice}</span>
+                  <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444', marginLeft: '8px' }}>{hotel.discountedPrice}</span>
+                  <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '4px' }}>/ night</span>
                 </div>
-                
                 <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>📍</span>
                   <span>{hotel.address}</span>
@@ -182,7 +165,6 @@ function Hotels({ trip }) {  // ← Add trip as prop
         </div>
       </div>
 
-      {/* Modal for hotel details */}
       {showModal && selectedHotel && (
         <div style={{
           position: 'fixed',
@@ -209,60 +191,26 @@ function Hotels({ trip }) {  // ← Add trip as prop
             <img 
               src={selectedHotel.hotelImageUrl}
               alt={selectedHotel.name}
-              style={{ 
-                width: '100%', 
-                height: '200px', 
-                objectFit: 'cover',
-                borderRadius: '12px',
-                marginBottom: '16px'
-              }}
-              onError={(e) => {
-                e.target.src = "/placeholder.jpg";
-              }}
+              style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '12px', marginBottom: '16px' }}
+              onError={(e) => { e.target.src = `https://picsum.photos/id/${selectedHotel.id % 100}/400/300`; }}
             />
             
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
-              {selectedHotel.name}
-            </h2>
-            
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>{selectedHotel.name}</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#f59e0b' }}>
-                ⭐ {selectedHotel.rating}
-              </span>
+              <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#f59e0b' }}>⭐ {selectedHotel.rating}</span>
               <span style={{ color: '#6b7280' }}>({selectedHotel.reviews} reviews)</span>
             </div>
-            
-            <p style={{ color: '#6b7280', marginBottom: '16px' }}>
-              📍 {selectedHotel.address}
-            </p>
-            
+            <p style={{ color: '#6b7280', marginBottom: '16px' }}>📍 {selectedHotel.address}</p>
             <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline' }}>
-                <span style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'line-through' }}>
-                  {selectedHotel.originalPrice}
-                </span>
-                <span style={{ fontSize: '28px', fontWeight: 'bold', color: '#ef4444' }}>
-                  {selectedHotel.discountedPrice}
-                </span>
+                <span style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'line-through' }}>{selectedHotel.originalPrice}</span>
+                <span style={{ fontSize: '28px', fontWeight: 'bold', color: '#ef4444' }}>{selectedHotel.discountedPrice}</span>
               </div>
             </div>
-            
-            <p style={{ color: '#4b5563', lineHeight: '1.6', marginBottom: '24px' }}>
-              {selectedHotel.description}
-            </p>
-            
+            <p style={{ color: '#4b5563', lineHeight: '1.6', marginBottom: '24px' }}>{selectedHotel.description}</p>
             <button
               onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedHotel.address)}`, '_blank')}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
+              style={{ width: '100%', padding: '12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
             >
               📍 View on Google Maps
             </button>
@@ -270,7 +218,7 @@ function Hotels({ trip }) {  // ← Add trip as prop
         </div>
       )}
     </>
-  )
+  );
 }
 
-export default Hotels
+export default Hotels;

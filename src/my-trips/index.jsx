@@ -1,20 +1,73 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { db, auth } from '../service/firebaseConfig'
 import { collection, getDocs, query, where, orderBy, deleteDoc, doc } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
 import { AiOutlineLoading3Quarters, AiOutlineDelete } from 'react-icons/ai'
-import { toast } from 'sonner'
+import { Toaster, toast } from 'sonner'
 
 function MyTrips() {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  const [isMounted, setIsMounted] = useState(true);
   const navigate = useNavigate();
+
+  // Track window width for responsive design
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Better image URL function with working images
+  const getTripImage = useCallback((location) => {
+    if (!location) return "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
+    
+    const locationLower = location.toLowerCase();
+    
+    const imageMap = {
+      'morocco': 'https://images.unsplash.com/photo-1489493887464-892be6d1da6a?w=400&h=200&fit=crop',
+      'japan': 'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=400&h=200&fit=crop',
+      'tokyo': 'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=400&h=200&fit=crop',
+      'italy': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=200&fit=crop',
+      'rome': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=200&fit=crop',
+      'france': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=200&fit=crop',
+      'paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=200&fit=crop',
+      'spain': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=200&fit=crop',
+      'barcelona': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=200&fit=crop',
+      'thailand': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=400&h=200&fit=crop',
+      'bangkok': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=400&h=200&fit=crop',
+      'usa': 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=200&fit=crop',
+      'united states': 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=200&fit=crop',
+      'new york': 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=200&fit=crop',
+      'london': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&h=200&fit=crop',
+      'uk': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&h=200&fit=crop',
+      'australia': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop',
+      'india': 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=200&fit=crop',
+      'germany': 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=400&h=200&fit=crop',
+      'berlin': 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=400&h=200&fit=crop',
+      'portugal': 'https://images.unsplash.com/photo-1585208798174-6cedc86bf1c9?w=400&h=200&fit=crop',
+      'lisbon': 'https://images.unsplash.com/photo-1585208798174-6cedc86bf1c9?w=400&h=200&fit=crop',
+      'nepal': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop',
+      'egypt': 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=400&h=200&fit=crop'
+    };
+    
+    for (const [key, url] of Object.entries(imageMap)) {
+      if (locationLower.includes(key)) {
+        return url;
+      }
+    }
+    
+    return "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
+  }, []);
 
   // Check authentication status
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!isMounted) return;
+      
       setUser(currentUser);
       const guestMode = localStorage.getItem('guestMode') === 'true';
       
@@ -30,9 +83,11 @@ function MyTrips() {
       }
     });
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, isMounted]);
 
   const fetchUserTrips = async (userId) => {
+    if (!isMounted) return;
+    
     try {
       setLoading(true);
       const tripsRef = collection(db, "AITrips");
@@ -51,15 +106,16 @@ function MyTrips() {
         });
       });
       
-      console.log("Fetched trips for user:", tripsData);
-      setTrips(tripsData);
+      if (isMounted) {
+        setTrips(tripsData);
+        setLoading(false);
+      }
     } catch (error) {
       console.error("Error fetching trips:", error);
+      if (isMounted) setLoading(false);
       if (error.code === 'failed-precondition') {
         toast.info('Index is building. Please wait a moment and refresh.');
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -71,7 +127,7 @@ function MyTrips() {
       try {
         await deleteDoc(doc(db, "AITrips", tripId));
         toast.success('Trip deleted successfully!');
-        fetchUserTrips(user.uid);
+        if (user) fetchUserTrips(user.uid);
       } catch (error) {
         console.error("Error deleting trip:", error);
         toast.error('Failed to delete trip');
@@ -107,32 +163,15 @@ function MyTrips() {
     return budget || "Standard";
   };
 
-  const getFallbackImage = (location) => {
-    if (!location) return "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
-    
-    const locationLower = location.toLowerCase();
-    
-    const imageMap = {
-      'nepal': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop',
-      'egypt': 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=400&h=200&fit=crop',
-      'costa rica': 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400&h=200&fit=crop',
-      'morocco': 'https://images.unsplash.com/photo-1489493887464-892be6d1da6a?w=400&h=200&fit=crop',
-      'usa': 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=200&fit=crop',
-      'united states': 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=200&fit=crop',
-      'japan': 'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=400&h=200&fit=crop',
-      'italy': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=200&fit=crop',
-      'france': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=200&fit=crop',
-      'thailand': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=400&h=200&fit=crop',
-      'spain': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=200&fit=crop',
-      'india': 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=200&fit=crop'
+  const isLargeScreen = windowWidth > 1400;
+
+  // Cleanup on unmount
+  useEffect(() => {
+    setIsMounted(true);
+    return () => {
+      setIsMounted(false);
     };
-    
-    for (const [key, url] of Object.entries(imageMap)) {
-      if (locationLower.includes(key)) return url;
-    }
-    
-    return "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
-  };
+  }, []);
 
   // If not logged in, show sign in button
   if (!user && !loading) {
@@ -223,7 +262,7 @@ function MyTrips() {
           fontSize: '40px', 
           color: '#3b82f6' 
         }} />
-        <p>Loading your travel history...</p>
+        <p>Loading your planned trips...</p>
         <style>{`
           @keyframes spin {
             from { transform: rotate(0deg); }
@@ -234,7 +273,7 @@ function MyTrips() {
     );
   }
 
-  // Empty state - No travel history yet
+  // Empty state - No trips yet
   if (trips.length === 0) {
     return (
       <div style={{ 
@@ -243,12 +282,12 @@ function MyTrips() {
         padding: '80px 20px',
         textAlign: 'center'
       }}>
-        <div style={{ fontSize: '64px', marginBottom: '24px' }}>📜</div>
+        <div style={{ fontSize: '64px', marginBottom: '24px' }}>✈️</div>
         <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '16px' }}>
-          No Travel History Yet
+          No Planned Trips Yet
         </h2>
         <p style={{ color: '#6b7280', marginBottom: '32px' }}>
-          You haven't created any trips. Start planning your next adventure to build your history!
+          Your travel adventures start here! Create your first personalized itinerary.
         </p>
         <button
           onClick={() => navigate('/create-trip')}
@@ -273,21 +312,27 @@ function MyTrips() {
     <div style={{ 
       minHeight: '100vh',
       width: '100%',
-      maxWidth: '100%',
+      maxWidth: '1400px',
+      margin: '0 auto',
       overflowX: 'hidden',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '40px 20px',
       boxSizing: 'border-box'
     }}>
+      <Toaster 
+        position="top-center"
+        richColors
+        expand={true}
+      />
       <div style={{ 
-        maxWidth: '1200px', 
+        maxWidth: isLargeScreen ? '1400px' : '1200px', 
         margin: '0 auto', 
         background: 'white',
         borderRadius: '32px',
         overflow: 'hidden',
         boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
       }}>
-        {/* Header */}
+        {/* Header - My Planned Trips */}
         <div style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           padding: '30px 30px',
@@ -300,7 +345,7 @@ function MyTrips() {
         }}>
           <div>
             <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
-              📜 My Travel History
+              📜 My Planned Trips
             </h1>
             <p style={{ opacity: 0.9 }}>
               {trips.length} {trips.length === 1 ? 'trip' : 'trips'} planned
@@ -343,7 +388,7 @@ function MyTrips() {
               const budgetColor = getBudgetColor(userSelection.budget);
               const budgetDisplay = getBudgetDisplay(userSelection.budget);
               const locationName = userSelection.location || "Unknown";
-              const imageUrl = getFallbackImage(locationName);
+              const imageUrl = getTripImage(locationName);
               
               return (
                 <div
@@ -367,16 +412,18 @@ function MyTrips() {
                     e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                   }}
                 >
+                  {/* Fixed Image with fallback */}
                   <img 
                     src={imageUrl}
                     alt={locationName}
                     style={{
                       width: '100%',
                       height: '180px',
-                      objectFit: 'cover'
+                      objectFit: 'cover',
+                      backgroundColor: '#f3f4f6'
                     }}
                     onError={(e) => {
-                      e.target.src = getFallbackImage(locationName);
+                      e.target.src = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
                     }}
                   />
                   

@@ -177,7 +177,8 @@ function Viewtrip() {
         {/* Footer */}
         <Footer />
         
-        {/* Bottom Action Bar - Travel Guide and Back button in SAME LINE with proper spacing */}
+        {/* ========== FIXED BOTTOM ACTION BAR ========== */}
+        {/* Two buttons in same row - Travel Guide and Back */}
         <div style={{ 
           padding: isMobile ? '20px 16px 30px 16px' : '20px 30px 30px 30px',
           borderTop: '1px solid #e5e7eb',
@@ -190,11 +191,12 @@ function Viewtrip() {
             gap: isMobile ? '12px' : '20px',
             flexWrap: 'nowrap'
           }}>
-            {/* Travel Guide Button */}
+            
+            {/* Travel Guide Button - Opens Google Search */}
             <button
               onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(trip?.userSelection?.location)} travel guide`, '_blank')}
               style={{
-                padding: isSmallMobile ? '10px 12px' : '12px 28px',
+                padding: isSmallMobile ? '10px 16px' : '12px 28px',
                 background: 'linear-gradient(135deg, #667eea, #764ba2)',
                 border: 'none',
                 borderRadius: '40px',
@@ -204,10 +206,14 @@ function Viewtrip() {
                 transition: 'all 0.2s',
                 color: 'white',
                 boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
-                minWidth: isSmallMobile ? '120px' : '150px',
+                minWidth: isSmallMobile ? '110px' : '140px',
                 textAlign: 'center',
                 flex: 1,
-                maxWidth: isMobile ? '45%' : 'auto'
+                maxWidth: isMobile ? '45%' : 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
@@ -218,14 +224,15 @@ function Viewtrip() {
                 e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
               }}
             >
-              {isSmallMobile ? '🔍 Travel Guide' : '🔍 Travel Guide'}
+              <span style={{ fontSize: isSmallMobile ? '12px' : '14px' }}>🔍</span>
+              <span>{isSmallMobile ? 'Travel Guide' : 'Travel Guide'}</span>
             </button>
             
-            {/* Back Button - Same size, no arrow */}
+            {/* Back Button - Navigates to Create Trip */}
             <button
               onClick={handleBack}
               style={{
-                padding: isSmallMobile ? '10px 12px' : '12px 28px',
+                padding: isSmallMobile ? '10px 16px' : '12px 28px',
                 background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
                 color: 'white',
                 borderRadius: '40px',
@@ -235,10 +242,14 @@ function Viewtrip() {
                 fontWeight: '500',
                 transition: 'all 0.3s ease',
                 boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                minWidth: isSmallMobile ? '80px' : '150px',
+                minWidth: isSmallMobile ? '80px' : '100px',
                 textAlign: 'center',
                 flex: 1,
-                maxWidth: isMobile ? '45%' : 'auto'
+                maxWidth: isMobile ? '45%' : 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
@@ -249,10 +260,14 @@ function Viewtrip() {
                 e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
               }}
             >
-              Back
+              <span style={{ fontSize: isSmallMobile ? '12px' : '14px' }}>←</span>
+              <span>{isSmallMobile ? 'Back' : 'Back'}</span>
             </button>
+            
           </div>
         </div>
+        {/* ========== END OF BOTTOM ACTION BAR ========== */}
+        
       </div>
       
       <style>

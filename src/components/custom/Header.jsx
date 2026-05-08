@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import LanguageTranslator from '../LanguageTranslator'
 import { auth, logout } from '../../service/firebaseConfig'
@@ -97,25 +97,29 @@ function Header() {
     setShowUserMenu(!showUserMenu);
   };
 
+  // Handle menu item click without blinking
+  const handleMenuItemClick = useCallback((action) => {
+    setShowUserMenu(false);
+    action();
+  }, []);
+
   // Responsive modal width based on device
   const getModalWidth = () => {
-    if (windowWidth <= 480) return '95%';      // iPhone SE, small Android
-    if (windowWidth <= 640) return '92%';      // iPhone 12/13/14, small tablet
-    if (windowWidth <= 768) return '90%';      // iPad Mini, Galaxy Tab
-    if (windowWidth <= 1024) return '85%';     // iPad, small laptop
-    if (windowWidth <= 1280) return '800px';   // MacBook Air, small laptop
-    return '900px';                            // Desktop, large laptop
+    if (windowWidth <= 480) return '95%';
+    if (windowWidth <= 640) return '92%';
+    if (windowWidth <= 768) return '90%';
+    if (windowWidth <= 1024) return '85%';
+    if (windowWidth <= 1280) return '800px';
+    return '900px';
   };
 
-  // Responsive modal height based on device
   const getModalHeight = () => {
-    if (windowHeight <= 600) return '95vh';    // Small devices in landscape
-    if (windowHeight <= 700) return '90vh';    // Medium phones
-    if (windowHeight <= 800) return '88vh';    // Most phones
-    return '85vh';                             // Tablets and desktops
+    if (windowHeight <= 600) return '95vh';
+    if (windowHeight <= 700) return '90vh';
+    if (windowHeight <= 800) return '88vh';
+    return '85vh';
   };
 
-  // Responsive padding based on device
   const getModalPadding = () => {
     if (windowWidth <= 480) return '12px';
     if (windowWidth <= 640) return '16px';
@@ -123,14 +127,12 @@ function Header() {
     return '24px';
   };
 
-  // Responsive header padding
   const getHeaderPadding = () => {
     if (windowWidth <= 480) return '12px 16px';
     if (windowWidth <= 640) return '14px 20px';
     return '16px 24px';
   };
 
-  // Check if device is mobile for special adjustments
   const isMobile = windowWidth <= 768;
   const isSmallMobile = windowWidth <= 480;
 
@@ -239,11 +241,39 @@ function Header() {
                     {!isSmallMobile && <p style={{ fontSize: '10px', opacity: 0.85 }}>{user.email}</p>}
                   </div>
                   
+                  {/* ===== MY PLANNED TRIPS ===== */}
                   <button
-                    onClick={() => {
-                      setShowUserMenu(false);
-                      setShowTranslator(true);
+                    onClick={() => handleMenuItemClick(() => navigate('/my-trips'))}
+                    style={{
+                      width: '100%',
+                      padding: isMobile ? '12px 16px' : '14px 20px',
+                      textAlign: 'left',
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: isMobile ? '12px' : '14px',
+                      fontWeight: '500',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      transition: 'all 0.2s',
+                      borderBottom: '1px solid rgba(255,255,255,0.1)'
                     }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                    }}
+                  >
+                    <span style={{ fontSize: isMobile ? '18px' : '20px' }}>📜</span>
+                    <span>My Planned Trips</span>
+                  </button>
+                  
+                  {/* ===== LANGUAGE TRANSLATOR ===== */}
+                  <button
+                    onClick={() => handleMenuItemClick(() => setShowTranslator(true))}
                     style={{
                       width: '100%',
                       padding: isMobile ? '12px 16px' : '14px 20px',
@@ -271,38 +301,7 @@ function Header() {
                     <span>Language Translator</span>
                   </button>
                   
-                  <button
-                    onClick={() => {
-                      setShowUserMenu(false);
-                      navigate('/my-trips');
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: isMobile ? '12px 16px' : '14px 20px',
-                      textAlign: 'left',
-                      background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: isMobile ? '12px' : '14px',
-                      fontWeight: '500',
-                      color: 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      transition: 'all 0.2s',
-                      borderBottom: '1px solid rgba(255,255,255,0.1)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
-                    }}
-                  >
-                    <span style={{ fontSize: isMobile ? '18px' : '20px' }}>📜</span>
-                    <span>My Travel History</span>
-                  </button>
-                  
+                  {/* ===== SIGN OUT ===== */}
                   <button
                     onClick={handleLogout}
                     style={{
@@ -384,7 +383,7 @@ function Header() {
         </div>
       </div>
 
-      {/* Language Translator Modal - FULLY RESPONSIVE FOR ALL DEVICES */}
+      {/* Language Translator Modal */}
       {showTranslator && (
         <div style={{
           position: 'fixed',
