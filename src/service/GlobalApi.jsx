@@ -3,6 +3,9 @@ import axios from "axios";
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchText';
 const API_KEY = import.meta.env.VITE_GOOGLE_PLACE_API_KEY;
 
+// ✅ FALLBACK IMAGE – shown when no photo is available
+export const FALLBACK_IMAGE = 'https://placehold.co/600x400/e2e8f0/64748b?text=No+Image';
+
 const config = {
     headers: {
         'Content-Type': 'application/json',
@@ -13,8 +16,8 @@ const config = {
 
 export const GetPlaceDetails = (data) => axios.post(BASE_URL, data, config);
 
-export const GetPlacePhoto = (photoName, maxWidth = 1200, maxHeight = 400) => {
-    if (!photoName) return null;
+export const GetPlacePhoto = (photoName, maxWidth = 400, maxHeight = 300) => {
+    if (!photoName) return FALLBACK_IMAGE;
     return `https://places.googleapis.com/v1/${photoName}/media?key=${API_KEY}&maxWidthPx=${maxWidth}&maxHeightPx=${maxHeight}`;
 };
 
@@ -77,10 +80,10 @@ export const GetDestinationPhoto = async (query, maxWidth = 800, maxHeight = 400
         const response = await GetPlaceDetails({ textQuery: query, pageSize: 1, languageCode: 'en' });
         const place = response.data?.places?.[0];
         if (place?.photos?.length) return GetPlacePhoto(place.photos[0].name, maxWidth, maxHeight);
-        return null;
+        return FALLBACK_IMAGE;
     } catch (error) {
         console.warn("Using fallback for destination photo");
-        return null;
+        return FALLBACK_IMAGE;
     }
 };
 
@@ -93,14 +96,14 @@ export const SearchDestination = async (query) => {
                 name: place.displayName?.text || query,
                 address: place.formattedAddress,
                 rating: place.rating,
-                photo: place.photos?.[0]?.name ? GetPlacePhoto(place.photos[0].name, 1200, 400) : null,
+                photo: place.photos?.[0]?.name ? GetPlacePhoto(place.photos[0].name, 1200, 400) : FALLBACK_IMAGE,
                 type: 'city'
             };
         }
         throw new Error('No place');
     } catch (error) {
         console.warn(`Mock destination for ${query}`);
-        return { name: query, address: query, rating: 4.2, photo: null, type: 'city' };
+        return { name: query, address: query, rating: 4.2, photo: FALLBACK_IMAGE, type: 'city' };
     }
 };
 
@@ -126,7 +129,7 @@ export const SearchAttractions = async (location) => {
 
 export const GetAttractionPhoto = (photoName, maxWidth = 400, maxHeight = 300) => {
     if (!photoName || photoName.startsWith('mock')) {
-        return `https://picsum.photos/${maxWidth}/${maxHeight}?random=${Math.random()}`;
+        return FALLBACK_IMAGE;
     }
     return GetPlacePhoto(photoName, maxWidth, maxHeight);
 };
