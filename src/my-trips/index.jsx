@@ -312,7 +312,7 @@ function MyTrips() {
     <div style={{ 
       minHeight: '100vh',
       width: '100%',
-      maxWidth: '100%', 
+      maxWidth: '1400px',
       margin: '0 auto',
       overflowX: 'hidden',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

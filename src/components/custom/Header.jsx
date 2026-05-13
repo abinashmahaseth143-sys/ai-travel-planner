@@ -144,8 +144,6 @@ function Header() {
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
-        maxWidth: '100%',  // ← Add this
-        overflowX: 'hidden',  // ← Add this
         borderBottom: '1px solid #e5e7eb',
         backgroundColor: 'white',
         position: 'sticky',

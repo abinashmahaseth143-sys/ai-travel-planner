@@ -6,8 +6,6 @@ function Hero() {
     <div style={{
       minHeight: 'calc(100vh - 70px)',
       width: '100%',
-      maxWidth: '100%',  // ← Add this
-      overflowX: 'hidden',  // ← Add this
       background: 'linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)',
       display: 'flex',
       alignItems: 'center',
