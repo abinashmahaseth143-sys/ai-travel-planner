@@ -24,6 +24,16 @@ function InfoSection({ trip, onTripUpdate }) {
   const [recommendations, setRecommendations] = useState([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // ✅ Add state for window width to make share dropdown responsive
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  // ✅ Track window width for responsive share dropdown
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const getLocation = () => {
     if (!trip?.userSelection?.location) return "United Kingdom";
@@ -173,7 +183,6 @@ function InfoSection({ trip, onTripUpdate }) {
   const shareViaPopup = (url, platform) => {
     const win = window.open(url, '_blank');
     if (!win) {
-      // Fallback: copy link to clipboard with a neutral info toast
       navigator.clipboard.writeText(url);
       toast.info(`${platform} share link copied to clipboard. You can paste it manually.`);
     }
@@ -295,6 +304,9 @@ function InfoSection({ trip, onTripUpdate }) {
     animation: isActive ? 'pulse 1.5s infinite' : 'none'
   });
 
+  // ✅ Determine if mobile (<= 768px)
+  const isMobile = windowWidth <= 768;
+
   return (
     <div style={{ padding: '0 30px' }}>
       {/* Hero Image */}
@@ -401,13 +413,43 @@ function InfoSection({ trip, onTripUpdate }) {
           <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '8px 20px' }}>💸 {getBudget()} Budget</div>
           <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '8px 20px' }}>🥂 No. Of Traveler: {getTravelers()}</div>
           
-          {/* SHARE DROPDOWN – FIXED: NO PAGE REDIRECT */}
+          {/* ✅ SHARE DROPDOWN – FIXED FOR ALL DEVICES */}
+          {/* On mobile (<=768px) it opens to the LEFT, on desktop it opens to the RIGHT */}
           <div className="share-container" style={{ position: 'relative' }}>
-            <button onClick={() => setShowShareOptions(!showShareOptions)} style={{ backgroundColor: '#3b82f6', color: 'white', padding: '8px 24px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button 
+              onClick={() => setShowShareOptions(!showShareOptions)} 
+              style={{ 
+                backgroundColor: '#3b82f6', 
+                color: 'white', 
+                padding: '8px 24px', 
+                borderRadius: '8px', 
+                border: 'none', 
+                cursor: 'pointer', 
+                fontSize: '14px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px' 
+              }}
+            >
               📤 Share
             </button>
             {showShareOptions && (
-              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 100, minWidth: '180px', overflow: 'hidden' }}>
+              <div style={{ 
+                position: 'absolute', 
+                top: '100%', 
+                marginTop: '8px', 
+                backgroundColor: 'white', 
+                borderRadius: '12px', 
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)', 
+                zIndex: 100, 
+                minWidth: '180px', 
+                overflow: 'hidden',
+                // ✅ On mobile: open to the left so it's fully visible
+                // ✅ On desktop: open to the right (normal behaviour)
+                right: isMobile ? 'auto' : '0',
+                left: isMobile ? 'auto' : 'auto',
+                ...(isMobile && { right: '0' })
+              }}>
                 <div style={{ padding: '8px 0' }}>
                   <button onClick={shareOnWhatsApp} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
                     <span style={{ fontSize: '20px', marginRight: '10px' }}>💬</span> WhatsApp
