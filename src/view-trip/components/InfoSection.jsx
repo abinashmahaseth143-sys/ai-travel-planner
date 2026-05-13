@@ -411,8 +411,8 @@ function InfoSection({ trip, onTripUpdate }) {
           <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '8px 20px' }}>💸 {getBudget()} Budget</div>
           <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '8px 20px' }}>🥂 No. Of Traveler: {getTravelers()}</div>
           
-          {/* ✅ SHARE DROPDOWN – HORIZONTAL BUTTONS, RESPONSIVE */}
-          <div className="share-container" style={{ position: 'relative' }}>
+          {/* ✅ SHARE DROPDOWN - VERTICAL BUTTONS, PERFECTLY CENTERED */}
+          <div className="share-container" style={{ position: 'relative', display: 'inline-block' }}>
             <button 
               onClick={() => setShowShareOptions(!showShareOptions)} 
               style={{ 
@@ -435,25 +435,24 @@ function InfoSection({ trip, onTripUpdate }) {
               <div style={{ 
                 position: 'absolute', 
                 top: '100%', 
+                left: '50%',
+                transform: 'translateX(-50%)',
                 marginTop: '8px', 
                 backgroundColor: 'white', 
                 borderRadius: '12px', 
                 boxShadow: '0 4px 20px rgba(0,0,0,0.15)', 
                 zIndex: 100, 
                 overflow: 'hidden',
-                right: isMobile ? 'auto' : '0',
-                left: isMobile ? 'auto' : 'auto',
-                ...(isMobile && { right: '0' })
+                minWidth: '180px',
+                width: 'auto'
               }}>
-                {/* Horizontal row of buttons - all in one line */}
+                {/* VERTICAL LAYOUT - ALL BUTTONS STACKED VERTICALLY */}
                 <div style={{ 
                   display: 'flex', 
-                  flexDirection: 'row', 
-                  flexWrap: 'wrap',
-                  gap: '8px',
-                  padding: '12px',
-                  minWidth: '280px',
-                  maxWidth: '100%'
+                  flexDirection: 'column',
+                  gap: '6px',
+                  padding: '10px',
+                  minWidth: '160px'
                 }}>
                   {/* WhatsApp */}
                   <button 
@@ -461,24 +460,24 @@ function InfoSection({ trip, onTripUpdate }) {
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: isMobile ? '0' : '6px',
-                      padding: isMobile ? '8px' : '8px 14px',
-                      width: isMobile ? '40px' : 'auto',
-                      justifyContent: 'center',
+                      gap: '10px',
+                      padding: '10px 16px',
+                      width: '100%',
+                      justifyContent: 'flex-start',
                       border: 'none', 
                       backgroundColor: '#25D366', 
                       color: 'white', 
                       borderRadius: '40px', 
                       cursor: 'pointer', 
-                      fontSize: isMobile ? '18px' : '13px',
+                      fontSize: '14px',
                       fontWeight: '500',
                       transition: 'all 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
                     onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                   >
-                    <span>💬</span>
-                    {!isMobile && <span>WhatsApp</span>}
+                    <span style={{ fontSize: '18px' }}>💬</span>
+                    <span>WhatsApp</span>
                   </button>
                   
                   {/* Telegram */}
@@ -487,24 +486,24 @@ function InfoSection({ trip, onTripUpdate }) {
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: isMobile ? '0' : '6px',
-                      padding: isMobile ? '8px' : '8px 14px',
-                      width: isMobile ? '40px' : 'auto',
-                      justifyContent: 'center',
+                      gap: '10px',
+                      padding: '10px 16px',
+                      width: '100%',
+                      justifyContent: 'flex-start',
                       border: 'none', 
                       backgroundColor: '#26A5E4', 
                       color: 'white', 
                       borderRadius: '40px', 
                       cursor: 'pointer', 
-                      fontSize: isMobile ? '18px' : '13px',
+                      fontSize: '14px',
                       fontWeight: '500',
                       transition: 'all 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
                     onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                   >
-                    <span>📨</span>
-                    {!isMobile && <span>Telegram</span>}
+                    <span style={{ fontSize: '18px' }}>📨</span>
+                    <span>Telegram</span>
                   </button>
                   
                   {/* Facebook */}
@@ -513,24 +512,24 @@ function InfoSection({ trip, onTripUpdate }) {
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: isMobile ? '0' : '6px',
-                      padding: isMobile ? '8px' : '8px 14px',
-                      width: isMobile ? '40px' : 'auto',
-                      justifyContent: 'center',
+                      gap: '10px',
+                      padding: '10px 16px',
+                      width: '100%',
+                      justifyContent: 'flex-start',
                       border: 'none', 
                       backgroundColor: '#1877F2', 
                       color: 'white', 
                       borderRadius: '40px', 
                       cursor: 'pointer', 
-                      fontSize: isMobile ? '18px' : '13px',
+                      fontSize: '14px',
                       fontWeight: '500',
                       transition: 'all 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
                     onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                   >
-                    <span>f</span>
-                    {!isMobile && <span>Facebook</span>}
+                    <span style={{ fontSize: '18px' }}>f</span>
+                    <span>Facebook</span>
                   </button>
                   
                   {/* Twitter */}
@@ -539,24 +538,24 @@ function InfoSection({ trip, onTripUpdate }) {
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: isMobile ? '0' : '6px',
-                      padding: isMobile ? '8px' : '8px 14px',
-                      width: isMobile ? '40px' : 'auto',
-                      justifyContent: 'center',
+                      gap: '10px',
+                      padding: '10px 16px',
+                      width: '100%',
+                      justifyContent: 'flex-start',
                       border: 'none', 
                       backgroundColor: '#1DA1F2', 
                       color: 'white', 
                       borderRadius: '40px', 
                       cursor: 'pointer', 
-                      fontSize: isMobile ? '18px' : '13px',
+                      fontSize: '14px',
                       fontWeight: '500',
                       transition: 'all 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
                     onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                   >
-                    <span>𝕏</span>
-                    {!isMobile && <span>Twitter</span>}
+                    <span style={{ fontSize: '18px' }}>𝕏</span>
+                    <span>Twitter</span>
                   </button>
                   
                   {/* LinkedIn */}
@@ -565,24 +564,24 @@ function InfoSection({ trip, onTripUpdate }) {
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: isMobile ? '0' : '6px',
-                      padding: isMobile ? '8px' : '8px 14px',
-                      width: isMobile ? '40px' : 'auto',
-                      justifyContent: 'center',
+                      gap: '10px',
+                      padding: '10px 16px',
+                      width: '100%',
+                      justifyContent: 'flex-start',
                       border: 'none', 
                       backgroundColor: '#0077B5', 
                       color: 'white', 
                       borderRadius: '40px', 
                       cursor: 'pointer', 
-                      fontSize: isMobile ? '18px' : '13px',
+                      fontSize: '14px',
                       fontWeight: '500',
                       transition: 'all 0.2s'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
                     onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                   >
-                    <span>in</span>
-                    {!isMobile && <span>LinkedIn</span>}
+                    <span style={{ fontSize: '18px' }}>in</span>
+                    <span>LinkedIn</span>
                   </button>
                 </div>
               </div>
