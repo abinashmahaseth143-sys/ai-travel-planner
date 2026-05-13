@@ -1,12 +1,21 @@
 /* ============================================
-   RESPONSIVE DESIGN - ALL DEVICES
+   FINAL FIX - NO HORIZONTAL SCROLL ON ANY DEVICE
    ============================================ */
 
-/* Base responsive settings */
+/* Reset all margins and paddings */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* Prevent horizontal scroll on body and html */
+html, body {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  position: relative !important;
 }
 
 html {
@@ -15,60 +24,18 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Mobile First Approach */
+/* Main app container */
 body {
-  overflow-x: auto;
+  overflow-x: hidden !important;
   width: 100%;
   position: relative;
 }
 
-/* ============================================
-   FIX FOR LARGER SCREENS (1440px and above)
-   ============================================ */
-
-/* Limit maximum width for better readability */
-.app-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* For screens larger than 1440px */
-@media (min-width: 1440px) {
-  /* Center and limit content width */
-  .main-content {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  /* Adjust card grid for large screens */
-  .countries-grid,
-  .hotels-grid,
-  .places-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 24px !important;
-  }
-  
-  /* Make trip cards more compact on large screens */
-  .trip-card {
-    max-width: 380px;
-    margin: 0 auto;
-  }
-  
-  /* Center main container */
-  #root > div {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-}
-
-/* For ultra-wide screens (1920px+) */
-@media (min-width: 1920px) {
-  .countries-grid,
-  .hotels-grid,
-  .places-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
-  }
+#root, .app-container {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  position: relative;
 }
 
 /* ============================================
@@ -80,8 +47,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
-  padding: 16px;
-  overflow-x: visible;
+  overflow-x: visible !important;
   max-width: 100%;
 }
 
@@ -89,7 +55,6 @@ body {
   .countries-grid {
     grid-template-columns: 1fr;
     gap: 12px;
-    padding: 12px;
   }
 }
 
@@ -105,7 +70,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
-  overflow-x: visible;
+  overflow-x: visible !important;
   max-width: 100%;
 }
 
@@ -121,7 +86,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
-  overflow-x: visible;
+  overflow-x: visible !important;
   max-width: 100%;
 }
 
@@ -133,46 +98,122 @@ body {
 }
 
 /* ============================================
-   HORIZONTAL SCROLL FOR COUNTRY CARDS
+   HORIZONTAL SCROLL ONLY FOR COUNTRY CARDS
    ============================================ */
 
+/* Container for horizontal scrolling */
 .country-container,
-[class*="country-grid"],
-[class*="countries-list"] {
+.scroll-container,
+.horizontal-scroll {
   overflow-x: auto !important;
-  overflow-y: visible !important;
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 20px !important;
-  padding: 16px !important;
-  margin: 0 !important;
-  scroll-behavior: smooth;
+  overflow-y: hidden !important;
+  display: block !important;
+  width: 100% !important;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+  white-space: nowrap;
 }
 
+/* Inner flex container for horizontal cards */
+.horizontal-scroll-inner,
+.country-container > div,
+.scroll-container > div {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 20px;
+  width: fit-content;
+  min-width: 100%;
+}
+
+/* Individual card in horizontal scroll */
+.horizontal-card,
 .country-card {
   flex: 0 0 auto !important;
-  min-width: 220px !important;
-  width: 220px !important;
-  max-width: 220px !important;
+  width: 260px !important;
+  min-width: 260px !important;
+  display: inline-block;
+  white-space: normal;
   background: white;
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  display: block !important;
-  overflow: visible !important;
 }
 
 @media (max-width: 768px) {
+  .horizontal-card,
   .country-card {
     min-width: 200px !important;
     width: 200px !important;
-    max-width: 200px !important;
   }
 }
 
-/* Scrollbar Styling */
+/* ============================================
+   FIX FOR LARGER SCREENS (1440px and above)
+   ============================================ */
+
+@media (min-width: 1440px) {
+  .main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .countries-grid,
+  .hotels-grid,
+  .places-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 24px !important;
+  }
+}
+
+@media (min-width: 1920px) {
+  .countries-grid,
+  .hotels-grid,
+  .places-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* ============================================
+   ULTRA SMALL SCREENS (under 320px)
+   ============================================ */
+
+@media (max-width: 320px) {
+  button, .btn {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 11px !important;
+  }
+  
+  input, .input {
+    font-size: 13px !important;
+    padding: 8px 10px !important;
+  }
+  
+  .horizontal-card,
+  .country-card {
+    min-width: 180px !important;
+    width: 180px !important;
+  }
+  
+  h1, h2, h3, p, span {
+    word-break: break-word;
+  }
+}
+
+/* ============================================
+   IMAGES - PREVENT OVERFLOW
+   ============================================ */
+
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -193,8 +234,9 @@ body {
 }
 
 /* ============================================
-   TOAST NOTIFICATION STYLES (Fix #4)
+   TOAST NOTIFICATION STYLES
    ============================================ */
+
 .sonner-toast {
   animation: slideIn 0.3s ease !important;
   font-size: 16px !important;
@@ -215,8 +257,9 @@ body {
 }
 
 /* ============================================
-   IMAGE LOADING ANIMATION (Fix #6)
+   IMAGE LOADING ANIMATION
    ============================================ */
+
 @keyframes loading {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -226,4 +269,45 @@ body {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.text-center {
+  text-align: center;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.overflow-hidden {
+  overflow: hidden !important;
+}
+
+.overflow-x-hidden {
+  overflow-x: hidden !important;
+}
+
+.overflow-x-auto {
+  overflow-x: auto !important;
+}
+
+/* ============================================
+   RESPONSIVE TABLES & CODE BLOCKS
+   ============================================ */
+
+table {
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+
+pre, code {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }

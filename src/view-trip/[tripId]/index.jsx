@@ -64,6 +64,10 @@ function Viewtrip() {
     navigate('/create-trip');
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const isMobile = windowWidth <= 768;
   const isSmallMobile = windowWidth <= 480;
 
@@ -133,12 +137,13 @@ function Viewtrip() {
     <div style={{
       minHeight: '100vh',
       width: '100%',
-      maxWidth: '1200px',
+      maxWidth: '100%',
+      margin: '0',
       overflowX: 'hidden',
+      overflowY: 'auto',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '40px 20px',
       position: 'relative',
-      margin: 0,
       boxSizing: 'border-box'
     }}>
       <div style={{
@@ -242,6 +247,42 @@ function Viewtrip() {
           </button>
         </div>
       </div>
+      
+      {/* Scroll to Top Button */}
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '50%',
+            width: '50px',
+            height: '50px',
+            cursor: 'pointer',
+            fontSize: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            zIndex: 1000,
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+          }}
+        >
+          ↑
+        </button>
+      )}
       
       {showCookieModal && <CookiePreferences onClose={() => setShowCookieModal(false)} />}
       

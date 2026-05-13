@@ -299,7 +299,7 @@ function CreateTrip() {
       duration: 4000,
       position: 'top-center',
       style: {
-        background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)',
+        background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
         color: 'white',
         padding: '16px 24px',
         fontSize: '16px',
@@ -424,17 +424,17 @@ function CreateTrip() {
 
   return (
     <div style={{
-  minHeight: '100vh',
-  width: '100%',
-  maxWidth: '100%',  // ← Changed from '1400px'
-  margin: '0',
-  overflowX: 'hidden',  // Keep this
-  overflowY: 'auto',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  padding: '40px 20px',
-  position: 'relative',
-  boxSizing: 'border-box'
-}}>
+      minHeight: '100vh',
+      width: '100%',
+      maxWidth: '100%',
+      margin: '0',
+      overflowX: 'hidden',
+      overflowY: 'auto',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '40px 20px',
+      position: 'relative',
+      boxSizing: 'border-box'
+    }}>
       <Toaster 
         position="top-center"
         richColors
@@ -588,7 +588,7 @@ function CreateTrip() {
           {/* Destination Section */}
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '28px' }}></span>
+              <span style={{ fontSize: '28px' }}>📍</span>
               <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>Where would you like to go?</h3>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -643,7 +643,7 @@ function CreateTrip() {
           {/* Days Section */}
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '28px' }}></span>
+              <span style={{ fontSize: '28px' }}>📅</span>
               <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>How many days are you planning?</h3>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -710,7 +710,7 @@ function CreateTrip() {
           {/* Budget Section */}
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '28px' }}></span>
+              <span style={{ fontSize: '28px' }}>💰</span>
               <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>What is your budget?</h3>
             </div>
             <div style={{ 
@@ -765,7 +765,7 @@ function CreateTrip() {
           {/* Traveler Section */}
           <div style={{ marginBottom: '40px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '28px' }}></span>
+              <span style={{ fontSize: '28px' }}>👥</span>
               <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>Who's joining the adventure?</h3>
             </div>
             <div style={{ 
@@ -905,6 +905,7 @@ function CreateTrip() {
                 </>
               ) : (
                 <>
+                  ✨
                   {windowWidth < 500 ? 'Generate' : 'Generate My Trip'}
                 </>
               )}
