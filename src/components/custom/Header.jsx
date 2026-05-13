@@ -35,7 +35,7 @@ function Header() {
       setIsGuest(guestMode && !user);
       
       const guestTripsGenerated = parseInt(localStorage.getItem('guestTripsGenerated') || '0');
-      setRemainingTrips(2 - guestTripsGenerated);
+      setRemainingTrips(Math.max(0, 2 - guestTripsGenerated));
     });
     return () => unsubscribe();
   }, []);
@@ -185,6 +185,7 @@ function Header() {
             <div style={{ position: 'relative' }} ref={userMenuRef}>
               <button
                 onClick={toggleUserMenu}
+                aria-label={showUserMenu ? "Close user menu" : "Open user menu"}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -209,7 +210,14 @@ function Header() {
                 />
                 {!isSmallMobile && (
                   <>
-                    <span style={{ fontSize: isMobile ? '11px' : '13px', marginRight: '2px', maxWidth: isMobile ? '70px' : '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ 
+                      fontSize: isMobile ? '11px' : '13px', 
+                      marginRight: '2px',
+                      maxWidth: isMobile ? '100px' : '120px',  // FIXED: increased from 70px to 100px on mobile
+                      overflow: 'hidden', 
+                      textOverflow: 'ellipsis', 
+                      whiteSpace: 'nowrap' 
+                    }}>
                       {user.displayName?.split(' ')[0] || 'User'}
                     </span>
                     <span style={{ fontSize: isMobile ? '8px' : '10px' }}>▼</span>
@@ -241,7 +249,6 @@ function Header() {
                     {!isSmallMobile && <p style={{ fontSize: '10px', opacity: 0.85 }}>{user.email}</p>}
                   </div>
                   
-                  {/* ===== MY PLANNED TRIPS ===== */}
                   <button
                     onClick={() => handleMenuItemClick(() => navigate('/my-trips'))}
                     style={{
@@ -271,7 +278,6 @@ function Header() {
                     <span>My Planned Trips</span>
                   </button>
                   
-                  {/* ===== LANGUAGE TRANSLATOR ===== */}
                   <button
                     onClick={() => handleMenuItemClick(() => setShowTranslator(true))}
                     style={{
@@ -301,7 +307,6 @@ function Header() {
                     <span>Language Translator</span>
                   </button>
                   
-                  {/* ===== SIGN OUT ===== */}
                   <button
                     onClick={handleLogout}
                     style={{

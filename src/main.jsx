@@ -7,7 +7,9 @@ import CreateTrip from './create-trip';
 import { Toaster } from './components/ui/sonner';
 import Viewtrip from './view-trip/[tripId]';
 import MyTrips from './my-trips/index.jsx';
-import Login from './components/custom/Login';  // Import Login component
+import Login from './components/custom/Login';
+import Terms from './terms';
+import Privacy from './privacy';
 
 // Layout component that includes Header and Toaster
 function Layout() {
@@ -20,7 +22,7 @@ function Layout() {
   );
 }
 
-// Simple layout for login page (no Header)
+// Simple layout for login, terms, privacy (no Header)
 function SimpleLayout() {
   return (
     <>
@@ -61,6 +63,28 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Login />
+      }
+    ]
+  },
+  // Terms of Service route
+  {
+    path: "/terms",
+    element: <SimpleLayout />,
+    children: [
+      {
+        index: true,
+        element: <Terms />
+      }
+    ]
+  },
+  // Privacy Policy route
+  {
+    path: "/privacy",
+    element: <SimpleLayout />,
+    children: [
+      {
+        index: true,
+        element: <Privacy />
       }
     ]
   }

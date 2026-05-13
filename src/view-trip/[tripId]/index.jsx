@@ -1,13 +1,14 @@
 import { db } from '@/service/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import InfoSection from '../components/InfoSection';
-import Hotels from '../components/Hotels'; 
+import Hotels from '../components/Hotels';
 import PlacesToVisit from '../components/PlacesToVisit';
 import Footer from '../components/Footer';
 import WeatherWidget from '../components/WeatherWidget';
+import CookiePreferences from '../../components/custom/CookiePreferences';
 
 function Viewtrip() {
   const { tripId } = useParams();
@@ -16,8 +17,8 @@ function Viewtrip() {
   const [loading, setLoading] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  const [showCookieModal, setShowCookieModal] = useState(false);
 
-  // Track window width for responsive design
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
@@ -59,13 +60,8 @@ function Viewtrip() {
     }
   };
 
-  // Back button goes to Create Trip
   const handleBack = () => {
     navigate('/create-trip');
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const isMobile = windowWidth <= 768;
@@ -145,7 +141,6 @@ function Viewtrip() {
       margin: 0,
       boxSizing: 'border-box'
     }}>
-      {/* Main Content - White Card */}
       <div style={{
         maxWidth: '1200px',
         width: '100%',
@@ -156,119 +151,99 @@ function Viewtrip() {
         boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
         boxSizing: 'border-box'
       }}>
-        {/* Information Section */}
         <InfoSection trip={trip} />
         
-        {/* Weather Widget */}
         <div style={{ padding: '0 30px 20px 30px' }}>
           <WeatherWidget destination={trip?.userSelection?.location} />
         </div>
         
-        {/* Recommended Hotels */}
         <div style={{ padding: '0 30px' }}>
           <Hotels trip={trip} />
         </div>
         
-        {/* Daily Plans */}
         <div style={{ padding: '0 30px' }}>
           <PlacesToVisit trip={trip} />
         </div>
         
-        {/* Footer */}
         <Footer />
         
-        {/* ========== FIXED BOTTOM ACTION BAR ========== */}
-        {/* Two buttons in same row - Travel Guide and Back */}
+        {/* BOTTOM ACTION BAR - Legal links on left, Back button on right */}
         <div style={{ 
-          padding: isMobile ? '20px 16px 30px 16px' : '20px 30px 30px 30px',
+          padding: isMobile ? '12px 16px' : '16px 24px',
           borderTop: '1px solid #e5e7eb',
-          marginTop: '20px'
+          backgroundColor: '#f9fafb',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'nowrap',
+          gap: '12px'
         }}>
+          {/* Left section - legal links + copyright (no wrapping) */}
           <div style={{ 
             display: 'flex', 
-            justifyContent: 'center',
+            gap: isMobile ? '12px' : '20px', 
+            flexWrap: 'nowrap',
             alignItems: 'center',
-            gap: isMobile ? '12px' : '20px',
-            flexWrap: 'nowrap'
+            overflowX: 'auto',
+            whiteSpace: 'nowrap'
           }}>
-            
-            {/* Travel Guide Button - Opens Google Search */}
-            <button
-              onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(trip?.userSelection?.location)} travel guide`, '_blank')}
-              style={{
-                padding: isSmallMobile ? '10px 16px' : '12px 28px',
-                background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                border: 'none',
-                borderRadius: '40px',
-                cursor: 'pointer',
-                fontSize: isSmallMobile ? '12px' : '14px',
-                fontWeight: '500',
-                transition: 'all 0.2s',
-                color: 'white',
-                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
-                minWidth: isSmallMobile ? '110px' : '140px',
-                textAlign: 'center',
-                flex: 1,
-                maxWidth: isMobile ? '45%' : 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+            <Link to="/terms" style={{ color: '#000000', textDecoration: 'none', fontSize: isMobile ? '11px' : '13px', whiteSpace: 'nowrap' }}>
+              Terms of Service
+            </Link>
+            <Link to="/privacy" style={{ color: '#000000', textDecoration: 'none', fontSize: isMobile ? '11px' : '13px', whiteSpace: 'nowrap' }}>
+              Privacy Policy
+            </Link>
+            <button 
+              onClick={() => setShowCookieModal(true)} 
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                color: '#000000', 
+                cursor: 'pointer', 
+                fontSize: isMobile ? '11px' : '13px', 
+                padding: 0, 
+                whiteSpace: 'nowrap'
               }}
             >
-              <span style={{ fontSize: isSmallMobile ? '12px' : '14px' }}>🔍</span>
-              <span>{isSmallMobile ? 'Travel Guide' : 'Travel Guide'}</span>
+              Cookie Preferences
             </button>
-            
-            {/* Back Button - Navigates to Create Trip */}
-            <button
-              onClick={handleBack}
-              style={{
-                padding: isSmallMobile ? '10px 16px' : '12px 28px',
-                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-                color: 'white',
-                borderRadius: '40px',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: isSmallMobile ? '12px' : '14px',
-                fontWeight: '500',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                minWidth: isSmallMobile ? '80px' : '100px',
-                textAlign: 'center',
-                flex: 1,
-                maxWidth: isMobile ? '45%' : 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 15px rgba(0,0,0,0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-              }}
-            >
-              <span style={{ fontSize: isSmallMobile ? '12px' : '14px' }}>←</span>
-              <span>{isSmallMobile ? 'Back' : 'Back'}</span>
-            </button>
-            
+            <span style={{ color: '#9ca3af', fontSize: isMobile ? '10px' : '12px', whiteSpace: 'nowrap' }}>
+              © 2026 AI Travel Planner
+            </span>
           </div>
+
+          {/* Right section - Back button (fixed width, never shrinks) */}
+          <button
+            onClick={handleBack}
+            style={{
+              padding: isSmallMobile ? '6px 16px' : '8px 24px',
+              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+              color: 'white',
+              borderRadius: '40px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: isSmallMobile ? '12px' : '14px',
+              fontWeight: '500',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            }}
+          >
+            ← Back
+          </button>
         </div>
-        {/* ========== END OF BOTTOM ACTION BAR ========== */}
-        
       </div>
+      
+      {showCookieModal && <CookiePreferences onClose={() => setShowCookieModal(false)} />}
       
       <style>
         {`
@@ -277,13 +252,11 @@ function Viewtrip() {
             padding: 0;
             box-sizing: border-box;
           }
-          
           body {
             overflow-x: hidden;
             width: 100%;
             position: relative;
           }
-          
           @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }

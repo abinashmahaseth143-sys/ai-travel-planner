@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { SelectTravelesList, SelectBudgetOptions } from '../constants/options'
 import { toast } from 'sonner'
@@ -116,12 +116,13 @@ function CreateTrip() {
           label: spokenText,
           value: { formatted_address: spokenText }
         });
-        // Update the input field manually
         const inputElement = document.getElementById('destination-input');
         if (inputElement) {
           inputElement.value = spokenText;
         }
-        toast.success(`Destination set to ${spokenText}`);
+        toast.success(`Destination set to ${spokenText}`, {
+          style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+        });
       } 
       else if (field === 'days') {
         let daysValue = null;
@@ -145,44 +146,68 @@ function CreateTrip() {
         }
         if (daysValue && daysValue >= 1 && daysValue <= 30) {
           setDays(daysValue.toString());
-          toast.success(`✅ ${daysValue} day${daysValue > 1 ? 's' : ''} set!`);
+          toast.success(`${daysValue} day${daysValue > 1 ? 's' : ''} set!`, {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else if (daysValue && daysValue > 30) {
-          toast.info("Maximum 30 days allowed. Please say a lower number (1-30).");
+          toast.info("Maximum 30 days allowed. Please say a lower number (1-30).", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else {
-          toast.info("Please say a number like '5 days' or 'seven'");
+          toast.info("Please say a number like '5 days' or 'seven'", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         }
       }
       else if (field === 'budget') {
         const lowerText = spokenText.toLowerCase();
         if (lowerText.includes('cheap') || lowerText.includes('budget')) {
           setSelectedBudget(1);
-          toast.success("Budget set to Cheap");
+          toast.success("Budget set to Cheap", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else if (lowerText.includes('moderate') || lowerText.includes('medium')) {
           setSelectedBudget(2);
-          toast.success("Budget set to Moderate");
+          toast.success("Budget set to Moderate", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else if (lowerText.includes('luxury') || lowerText.includes('expensive')) {
           setSelectedBudget(3);
-          toast.success("Budget set to Luxury");
+          toast.success("Budget set to Luxury", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else {
-          toast.info("Please say 'cheap', 'moderate', or 'luxury'");
+          toast.info("Please say 'cheap', 'moderate', or 'luxury'", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         }
       }
       else if (field === 'traveler') {
         const lowerText = spokenText.toLowerCase();
         if (lowerText.includes('just me') || lowerText.includes('alone') || lowerText.includes('solo')) {
           setSelectedTraveler(1);
-          toast.success("Traveler set to Just Me");
+          toast.success("Traveler set to Just Me", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else if (lowerText.includes('couple') || lowerText.includes('two people') || lowerText.includes('2 people')) {
           setSelectedTraveler(2);
-          toast.success("Traveler set to Couple");
+          toast.success("Traveler set to Couple", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else if (lowerText.includes('family')) {
           setSelectedTraveler(3);
-          toast.success("Traveler set to Family");
+          toast.success("Traveler set to Family", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else if (lowerText.includes('friends') || lowerText.includes('group')) {
           setSelectedTraveler(4);
-          toast.success("Traveler set to Friends");
+          toast.success("Traveler set to Friends", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else {
-          toast.info("Please say 'just me', 'couple', 'family', or 'friends'");
+          toast.info("Please say 'just me', 'couple', 'family', or 'friends'", {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         }
       }
     };
@@ -196,7 +221,10 @@ function CreateTrip() {
       label: countryName,
       value: { formatted_address: countryName }
     });
-    toast.success(`Selected ${countryName}! Now set your trip details.`);
+    toast.success(`Selected ${countryName}! Now set your trip details.`, {
+      style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none', boxShadow: '0 8px 20px rgba(0,0,0,0.3)' },
+      duration: 3000
+    });
     
     const inputElement = document.getElementById('destination-input');
     if (inputElement) {
@@ -212,7 +240,9 @@ function CreateTrip() {
       const maxFreeTrips = 2;
       
       if (guestMode && guestTripsGenerated >= maxFreeTrips) {
-        toast.error(`You've reached the free limit of ${maxFreeTrips} trips! Please sign in to create more.`);
+        toast.error(`You've reached the free limit of ${maxFreeTrips} trips! Please sign in to create more.`, {
+          style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+        });
         navigate('/login');
         return false;
       }
@@ -243,9 +273,13 @@ function CreateTrip() {
         localStorage.setItem('guestTripsGenerated', newCount.toString());
         const remaining = maxFreeTrips - newCount;
         if (remaining === 0) {
-          toast.warning(`You've used all ${maxFreeTrips} free trips! Sign in to save more.`);
+          toast.warning(`You've used all ${maxFreeTrips} free trips! Sign in to save more.`, {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         } else {
-          toast.success(`Trip saved! You have ${remaining} free ${remaining === 1 ? 'trip' : 'trips'} remaining.`);
+          toast.success(`Trip saved! You have ${remaining} free ${remaining === 1 ? 'trip' : 'trips'} remaining.`, {
+            style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+          });
         }
       }
       
@@ -253,7 +287,9 @@ function CreateTrip() {
       return true;
     } catch (error) {
       console.error("Error saving trip:", error);
-      toast.error("Failed to save trip. Please try again.");
+      toast.error("Failed to save trip. Please try again.", {
+        style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+      });
       return false;
     }
   };
@@ -263,21 +299,21 @@ function CreateTrip() {
       duration: 4000,
       position: 'top-center',
       style: {
-        background: '#ef4444',
+        background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)',
         color: 'white',
         padding: '16px 24px',
         fontSize: '16px',
         fontWeight: 'bold',
         borderRadius: '12px',
-        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.2)'
-      },
-      icon: '⚠️'
+        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.2)',
+        border: 'none'
+      }
     });
   };
 
   const handleGenerateTrip = async () => {
     if (!place || !days || !selectedTraveler || !selectedBudget) {
-      showErrorNotification("⚠️ Please fill in all details before generating your trip!");
+      showErrorNotification("Please fill in all details before generating your trip!");
       return
     }
 
@@ -292,7 +328,10 @@ function CreateTrip() {
     }
 
     setLoading(true)
-    const loadingToast = toast.loading("Generating your personalized itinerary...")
+    const loadingToast = toast.loading("Generating your personalized itinerary...", {
+      id: 'gen-loading-toast',
+      style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+    })
 
     try {
       const travelerType = SelectTravelesList.find(t => t.id === selectedTraveler)?.title
@@ -307,7 +346,9 @@ function CreateTrip() {
       
       if (result.usedFallback) {
         toast.dismiss(loadingToast);
-        toast.info(result.fallbackMessage);
+        toast.info(result.fallbackMessage, {
+          style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+        });
       }
       
       const saved = await SaveAiTrip(result.data);
@@ -316,9 +357,13 @@ function CreateTrip() {
       
       toast.dismiss(loadingToast);
       if (saved) {
-        toast.success("Trip generated and saved successfully! 🎉")
+        toast.success("Trip generated and saved successfully!", {
+          style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none', fontSize: '16px' }
+        })
       } else {
-        toast.warning("Trip generated but could not save to database")
+        toast.warning("Trip generated but could not save to database", {
+          style: { background: 'linear-gradient(135deg, #1e3a5f, #0f2b4d)', color: 'white', fontWeight: 'bold', border: 'none' }
+        })
       }
       
     } catch (error) {
@@ -440,7 +485,7 @@ function CreateTrip() {
             wordBreak: 'break-word',
             textShadow: '0 2px 10px rgba(0,0,0,0.2)'
           }}>
-            ✨ Your Travel Story Starts Here
+            Your Travel Story Starts Here
           </h2>
           
           <p style={{ 
@@ -482,7 +527,7 @@ function CreateTrip() {
                 fontFamily: 'inherit',
                 margin: 0
               }}>
-                ✓ Signed in as {getUserDisplayName()}
+                Signed in as {getUserDisplayName()}
               </p>
             </div>
           )}
@@ -504,7 +549,7 @@ function CreateTrip() {
                 fontFamily: 'inherit',
                 margin: 0
               }}>
-                🎁 Guest Mode: {remainingTrips} free {remainingTrips === 1 ? 'trip' : 'trips'} remaining
+                Guest Mode: {remainingTrips} free {remainingTrips === 1 ? 'trip' : 'trips'} remaining
               </p>
             </div>
           )}
@@ -539,10 +584,10 @@ function CreateTrip() {
             borderRadius: '2px'
           }} />
           
-          {/* Destination Section - FIXED: Simple text input (no Google Places) */}
+          {/* Destination Section */}
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '28px' }}>📍</span>
+              <span style={{ fontSize: '28px' }}></span>
               <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>Where would you like to go?</h3>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -597,7 +642,7 @@ function CreateTrip() {
           {/* Days Section */}
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '28px' }}>📅</span>
+              <span style={{ fontSize: '28px' }}></span>
               <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>How many days are you planning?</h3>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -656,7 +701,7 @@ function CreateTrip() {
                 gap: '6px'
               }}>
                 <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', animation: 'pulse 1s infinite' }}></span>
-                🎤 Listening for number of days... Say like "5 days" or "seven"
+                Listening for number of days... Say like "5 days" or "seven"
               </div>
             )}
           </div>
@@ -664,7 +709,7 @@ function CreateTrip() {
           {/* Budget Section */}
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '28px' }}>💰</span>
+              <span style={{ fontSize: '28px' }}></span>
               <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>What is your budget?</h3>
             </div>
             <div style={{ 
@@ -719,7 +764,7 @@ function CreateTrip() {
           {/* Traveler Section */}
           <div style={{ marginBottom: '40px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '28px' }}>👥</span>
+              <span style={{ fontSize: '28px' }}></span>
               <h3 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 'bold', color: '#1f2937', fontFamily: 'inherit', margin: 0 }}>Who's joining the adventure?</h3>
             </div>
             <div style={{ 
@@ -859,7 +904,6 @@ function CreateTrip() {
                 </>
               ) : (
                 <>
-                  ✨
                   {windowWidth < 500 ? 'Generate' : 'Generate My Trip'}
                 </>
               )}
