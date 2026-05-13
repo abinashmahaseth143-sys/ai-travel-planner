@@ -25,10 +25,9 @@ function InfoSection({ trip, onTripUpdate }) {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   
-  // ✅ Add state for window width to make share dropdown responsive
+  // Track window width for responsive design
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
-  // ✅ Track window width for responsive share dropdown
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
@@ -175,7 +174,7 @@ function InfoSection({ trip, onTripUpdate }) {
     }
   }, [trip]);
 
-  // ========== SHARE FUNCTIONS – NO PAGE REDIRECT, SILENT CLIPBOARD FALLBACK ==========
+  // ========== SHARE FUNCTIONS ==========
   const getShareText = () => {
     return `✈️ Trip to ${getLocation()}!\n📅 Duration: ${getDays()} day${getDays() > 1 ? 's' : ''}\n💰 Budget: ${getBudget()}\n👥 Travelers: ${getTravelers()}\n\nCheck my itinerary:`;
   };
@@ -304,7 +303,6 @@ function InfoSection({ trip, onTripUpdate }) {
     animation: isActive ? 'pulse 1.5s infinite' : 'none'
   });
 
-  // ✅ Determine if mobile (<= 768px)
   const isMobile = windowWidth <= 768;
 
   return (
@@ -413,8 +411,7 @@ function InfoSection({ trip, onTripUpdate }) {
           <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '8px 20px' }}>💸 {getBudget()} Budget</div>
           <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '8px 20px' }}>🥂 No. Of Traveler: {getTravelers()}</div>
           
-          {/* ✅ SHARE DROPDOWN – FIXED FOR ALL DEVICES */}
-          {/* On mobile (<=768px) it opens to the LEFT, on desktop it opens to the RIGHT */}
+          {/* ✅ SHARE DROPDOWN – HORIZONTAL BUTTONS, RESPONSIVE */}
           <div className="share-container" style={{ position: 'relative' }}>
             <button 
               onClick={() => setShowShareOptions(!showShareOptions)} 
@@ -433,6 +430,7 @@ function InfoSection({ trip, onTripUpdate }) {
             >
               📤 Share
             </button>
+            
             {showShareOptions && (
               <div style={{ 
                 position: 'absolute', 
@@ -442,29 +440,149 @@ function InfoSection({ trip, onTripUpdate }) {
                 borderRadius: '12px', 
                 boxShadow: '0 4px 20px rgba(0,0,0,0.15)', 
                 zIndex: 100, 
-                minWidth: '180px', 
                 overflow: 'hidden',
-                // ✅ On mobile: open to the left so it's fully visible
-                // ✅ On desktop: open to the right (normal behaviour)
                 right: isMobile ? 'auto' : '0',
                 left: isMobile ? 'auto' : 'auto',
                 ...(isMobile && { right: '0' })
               }}>
-                <div style={{ padding: '8px 0' }}>
-                  <button onClick={shareOnWhatsApp} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
-                    <span style={{ fontSize: '20px', marginRight: '10px' }}>💬</span> WhatsApp
+                {/* Horizontal row of buttons - all in one line */}
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'row', 
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  padding: '12px',
+                  minWidth: '280px',
+                  maxWidth: '100%'
+                }}>
+                  {/* WhatsApp */}
+                  <button 
+                    onClick={shareOnWhatsApp} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: isMobile ? '0' : '6px',
+                      padding: isMobile ? '8px' : '8px 14px',
+                      width: isMobile ? '40px' : 'auto',
+                      justifyContent: 'center',
+                      border: 'none', 
+                      backgroundColor: '#25D366', 
+                      color: 'white', 
+                      borderRadius: '40px', 
+                      cursor: 'pointer', 
+                      fontSize: isMobile ? '18px' : '13px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <span>💬</span>
+                    {!isMobile && <span>WhatsApp</span>}
                   </button>
-                  <button onClick={shareOnTelegram} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
-                    <span style={{ fontSize: '20px', marginRight: '10px' }}>📨</span> Telegram
+                  
+                  {/* Telegram */}
+                  <button 
+                    onClick={shareOnTelegram} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: isMobile ? '0' : '6px',
+                      padding: isMobile ? '8px' : '8px 14px',
+                      width: isMobile ? '40px' : 'auto',
+                      justifyContent: 'center',
+                      border: 'none', 
+                      backgroundColor: '#26A5E4', 
+                      color: 'white', 
+                      borderRadius: '40px', 
+                      cursor: 'pointer', 
+                      fontSize: isMobile ? '18px' : '13px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <span>📨</span>
+                    {!isMobile && <span>Telegram</span>}
                   </button>
-                  <button onClick={shareOnFacebook} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
-                    <span style={{ fontSize: '20px', marginRight: '10px' }}>f</span> Facebook
+                  
+                  {/* Facebook */}
+                  <button 
+                    onClick={shareOnFacebook} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: isMobile ? '0' : '6px',
+                      padding: isMobile ? '8px' : '8px 14px',
+                      width: isMobile ? '40px' : 'auto',
+                      justifyContent: 'center',
+                      border: 'none', 
+                      backgroundColor: '#1877F2', 
+                      color: 'white', 
+                      borderRadius: '40px', 
+                      cursor: 'pointer', 
+                      fontSize: isMobile ? '18px' : '13px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <span>f</span>
+                    {!isMobile && <span>Facebook</span>}
                   </button>
-                  <button onClick={shareOnTwitter} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
-                    <span style={{ fontSize: '20px', marginRight: '10px' }}>𝕏</span> Twitter
+                  
+                  {/* Twitter */}
+                  <button 
+                    onClick={shareOnTwitter} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: isMobile ? '0' : '6px',
+                      padding: isMobile ? '8px' : '8px 14px',
+                      width: isMobile ? '40px' : 'auto',
+                      justifyContent: 'center',
+                      border: 'none', 
+                      backgroundColor: '#1DA1F2', 
+                      color: 'white', 
+                      borderRadius: '40px', 
+                      cursor: 'pointer', 
+                      fontSize: isMobile ? '18px' : '13px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <span>𝕏</span>
+                    {!isMobile && <span>Twitter</span>}
                   </button>
-                  <button onClick={shareOnLinkedIn} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
-                    <span style={{ fontSize: '20px', marginRight: '10px' }}>in</span> LinkedIn
+                  
+                  {/* LinkedIn */}
+                  <button 
+                    onClick={shareOnLinkedIn} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: isMobile ? '0' : '6px',
+                      padding: isMobile ? '8px' : '8px 14px',
+                      width: isMobile ? '40px' : 'auto',
+                      justifyContent: 'center',
+                      border: 'none', 
+                      backgroundColor: '#0077B5', 
+                      color: 'white', 
+                      borderRadius: '40px', 
+                      cursor: 'pointer', 
+                      fontSize: isMobile ? '18px' : '13px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <span>in</span>
+                    {!isMobile && <span>LinkedIn</span>}
                   </button>
                 </div>
               </div>
