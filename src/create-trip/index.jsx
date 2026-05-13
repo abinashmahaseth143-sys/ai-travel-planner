@@ -424,16 +424,17 @@ function CreateTrip() {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      width: '100%',
-      maxWidth: '1400px',
-      margin: '0 auto',
-      overflowX: 'hidden',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '40px 20px',
-      position: 'relative',
-      boxSizing: 'border-box'
-    }}>
+  minHeight: '100vh',
+  width: '100%',
+  maxWidth: '100%',  // ← Changed from '1400px'
+  margin: '0',
+  overflowX: 'hidden',  // Keep this
+  overflowY: 'auto',
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  padding: '40px 20px',
+  position: 'relative',
+  boxSizing: 'border-box'
+}}>
       <Toaster 
         position="top-center"
         richColors
@@ -448,7 +449,7 @@ function CreateTrip() {
       />
       
       <div style={{
-        maxWidth: isLargeScreen ? '1400px' : '1200px',
+        maxWidth: '1200px',
         width: '100%',
         margin: '0 auto',
         background: 'rgba(255, 255, 255, 0.98)',
